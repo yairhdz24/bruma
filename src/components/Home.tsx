@@ -1,4 +1,6 @@
-import type { RefObject } from 'react';
+import { useState, type RefObject } from 'react';
+import { command, isNative } from '../lib/bridge';
+import { REPO_URL } from '../lib/project';
 import { MicrophoneIcon, StopIcon, XIcon } from '@phosphor-icons/react';
 import { shortcutKeycaps } from '../lib/shortcut';
 import { duration, number, stats } from '../lib/useHistory';
@@ -27,6 +29,10 @@ function greeting(name: string) {
   return name ? `${part}, ${name.split(' ')[0]}` : part;
 }
 
+const STAR_KEY = 'bruma-star-prompt-v1';
+function starDismissed() { try { return localStorage.getItem(STAR_KEY) === 'done'; } catch { return false; } }
+const openRepo = () => { if (isNative) void command('open_url', { url: REPO_URL }).catch(() => {}); else window.open(REPO_URL, '_blank', 'noopener'); };
+
 export default function Home({ settings, voice, history, ready, isDemo, onStart, onStop, onCancel, onConnect, onOpenHistory, onNotice }: Props) {
   const mac = /Mac/i.test(navigator.userAgent);
   const keys = shortcutKeycaps(settings.shortcut, mac ? 'mac' : 'windows');
@@ -34,6 +40,10 @@ export default function Home({ settings, voice, history, ready, isDemo, onStart,
   const working = voice.phase === 'processing';
   const done = (voice.phase === 'inserted' || voice.phase === 'ready') && Boolean(voice.result);
   const figures = stats(history.totals);
+  // After a few real dictations, ask once (kindly) for a GitHub star.
+  const [starHidden, setStarHidden] = useState(starDismissed);
+  const showStar = !starHidden && history.totals.dictations >= 15;
+  const dismissStar = () => { try { localStorage.setItem(STAR_KEY, 'done'); } catch { /* optional */ } setStarHidden(true); };
   const recent = history.items.slice(0, 6);
   const words = `${voice.transcript}${voice.interim ? ` ${voice.interim}` : ''}`.trim();
   const fnCaps = fnKeys(settings, mac);
@@ -76,6 +86,15 @@ export default function Home({ settings, voice, history, ready, isDemo, onStart,
       <div><dt>Tiempo ahorrado</dt><dd>{figures.savedMinutes ? duration(figures.savedMinutes) : '—'}</dd></div>
       <div><dt>Racha</dt><dd>{figures.streak}<small>{figures.streak === 1 ? 'día' : 'días'}</small></dd></div>
     </dl>
+
+    {showStar && <aside className="star-card" aria-label="Apoya a Bruma">
+      <span className="star-card-icon" aria-hidden="true">★</span>
+      <div><p className="star-card-title">¿Te está gustando Bruma?</p><p className="star-card-text">Llevas {number(figures.words)} palabras dictadas. Una estrella en GitHub es gratis, toma un segundo y ayuda a que más gente la encuentre.</p></div>
+      <div className="star-card-actions">
+        <button type="button" className="button-primary is-ink" onClick={() => { openRepo(); dismissStar(); }}>⭐ Dar una estrella</button>
+        <button type="button" className="button-secondary" onClick={dismissStar}>Ahora no</button>
+      </div>
+    </aside>}
 
     <section className="section" aria-labelledby="recent-heading">
       <div className="section-head"><h2 id="recent-heading">Recientes</h2>{history.items.length > recent.length && <button type="button" className="link-button" onClick={onOpenHistory}>Ver todo el historial</button>}</div>

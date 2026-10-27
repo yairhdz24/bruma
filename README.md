@@ -16,6 +16,10 @@ Free, open-source voice keyboard for your Mac. Tap <kbd>fn</kbd>, speak, and cle
 
 [**Download**](#download) · [Español](README.es.md) · [How it works](docs/ARCHITECTURE.md) · [Report a bug](https://github.com/yairhdz24/bruma/issues/new/choose)
 
+<a href="https://github.com/yairhdz24/bruma/stargazers"><img src="https://img.shields.io/github/stars/yairhdz24/bruma?style=for-the-badge&logo=github&label=%E2%AD%90%20Star%20Bruma&color=FFD34D&labelColor=111111" alt="Star Bruma on GitHub" /></a>
+
+**If Bruma saves you time, please give it a ⭐. It's free, takes one second, and it's how other people find it.**
+
 <img src="docs/assets/pill.gif" width="600" alt="The Bruma pill listening, tinted with the color of the app you are writing into" />
 
 </div>
@@ -178,9 +182,16 @@ cd src-tauri && cargo test
 
 Ideas and pull requests are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Star history
+## Support Bruma
 
-If Bruma saves you time, a ⭐ helps a lot. It's how other people find it.
+Bruma is free and built in the open. The best ways to help:
+
+- ⭐ **[Star the repo](https://github.com/yairhdz24/bruma/stargazers)**: it's the #1 way people discover it.
+- 🐛 **[Report a bug or ask for a feature](https://github.com/yairhdz24/bruma/issues/new/choose).**
+- 🔁 **Share it** with a friend who types a lot, or post a clip of the pill in action.
+- 🛠️ **Contribute**: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Star history
 
 [![Star History Chart](https://api.star-history.com/svg?repos=yairhdz24/bruma&type=Date)](https://star-history.com/#yairhdz24/bruma&Date)
 

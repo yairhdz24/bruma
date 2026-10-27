@@ -266,3 +266,11 @@ input:checked + .switch { background: var(--sky); }
 .credit-star { color: #8a5a00; font-weight: 600; }
 [data-theme='dark'] .credit-star { color: #ffd34d; }
 .stats dd { white-space: nowrap; font-size: 28px; }
+
+/* A kind, one-time request for a GitHub star. */
+.star-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 16px; margin-top: 22px; padding: 16px 18px; border-radius: 20px; background: linear-gradient(120deg, color-mix(in srgb, #ffd34d 22%, var(--surface)), var(--surface) 60%); border: 1px solid color-mix(in srgb, #ffd34d 45%, var(--glass-line)); box-shadow: var(--glass-rim), var(--glass-drop); }
+.star-card-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: linear-gradient(180deg, #ffe07a, #f5b301); color: #6b4300; font-size: 22px; box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 6px 16px -6px rgba(245,179,1,.7); }
+.star-card-title { margin: 0; font-size: 14.5px; font-weight: 700; letter-spacing: -.01em; }
+.star-card-text { margin: 3px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+.star-card-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 760px) { .star-card { grid-template-columns: auto 1fr; } .star-card-actions { grid-column: 1 / -1; justify-content: flex-start; } }

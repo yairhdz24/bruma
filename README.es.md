@@ -16,6 +16,10 @@ Teclado por voz gratuito y de código abierto para tu Mac. Toca <kbd>fn</kbd>, h
 
 [**Descargar**](#descargar) · [English](README.md) · [Cómo funciona](docs/ARCHITECTURE.md) · [Reportar un problema](https://github.com/yairhdz24/bruma/issues/new/choose)
 
+<a href="https://github.com/yairhdz24/bruma/stargazers"><img src="https://img.shields.io/github/stars/yairhdz24/bruma?style=for-the-badge&logo=github&label=%E2%AD%90%20Dale%20una%20estrella&color=FFD34D&labelColor=111111" alt="Dale una estrella a Bruma en GitHub" /></a>
+
+**Si Bruma te ahorra tiempo, regálale una ⭐. Es gratis, toma un segundo y así más gente la encuentra.**
+
 <img src="docs/assets/pill.gif" width="600" alt="La píldora de Bruma escuchando, teñida del color de la app donde escribes" />
 
 </div>
@@ -178,9 +182,16 @@ cd src-tauri && cargo test
 
 Las ideas y los pull requests son bienvenidos; empieza por [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Historial de estrellas
+## Apoya a Bruma
 
-Si Bruma te ahorra tiempo, una ⭐ ayuda muchísimo: así la encuentran otras personas.
+Bruma es gratis y se construye en público. Las mejores formas de ayudar:
+
+- ⭐ **[Dale una estrella al repo](https://github.com/yairhdz24/bruma/stargazers)**: es la forma número uno en que la gente la descubre.
+- 🐛 **[Reporta un problema o pide una función](https://github.com/yairhdz24/bruma/issues/new/choose).**
+- 🔁 **Compártela** con alguien que escriba mucho, o publica un clip de la píldora en acción.
+- 🛠️ **Contribuye**: revisa [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Historial de estrellas
 
 [![Historial de estrellas](https://api.star-history.com/svg?repos=yairhdz24/bruma&type=Date)](https://star-history.com/#yairhdz24/bruma&Date)
 
