@@ -8,15 +8,22 @@
 
 Teclado por voz gratuito y de código abierto para tu Mac. Toca <kbd>fn</kbd>, habla, y el texto aparece limpio y bien puntuado donde está tu cursor, en cualquier app.
 
-[![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-0A84FF.svg)](LICENSE)
-[![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon-111?logo=apple)](#descargar)
-[![Windows](https://img.shields.io/badge/Windows-beta-555?logo=windows)](#descargar)
-[![Versión](https://img.shields.io/github/v/release/yairhdz24/bruma?color=0A84FF&label=versión)](https://github.com/yairhdz24/bruma/releases)
-[![Estrellas](https://img.shields.io/github/stars/yairhdz24/bruma?style=social)](https://github.com/yairhdz24/bruma/stargazers)
+<p>
+  <a href="https://github.com/yairhdz24/bruma/releases/latest"><img src="https://img.shields.io/github/v/release/yairhdz24/bruma?style=flat-square&color=0A84FF&label=versión&cacheSeconds=600" alt="Release" /></a>
+  <a href="https://github.com/yairhdz24/bruma/releases"><img src="https://img.shields.io/github/downloads/yairhdz24/bruma/total?style=flat-square&color=34C759&label=descargas&cacheSeconds=600" alt="Downloads" /></a>
+  <a href="https://github.com/yairhdz24/bruma/stargazers"><img src="https://img.shields.io/github/stars/yairhdz24/bruma?style=flat-square&color=FFD34D&logo=github&label=estrellas&cacheSeconds=600" alt="Stars" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-MIT-8E8E93?style=flat-square" alt="MIT" /></a>
+  <br />
+  <a href="#descargar"><img src="https://img.shields.io/badge/macOS-Apple%20Silicon-111111?style=flat-square&logo=apple&logoColor=white" alt="macOS" /></a>
+  <a href="#descargar"><img src="https://img.shields.io/badge/Windows-beta-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" /></a>
+  <img src="https://img.shields.io/badge/Tauri%202-Rust%20%2B%20React-24C8DB?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-bienvenidos-FF2D55?style=flat-square" alt="PRs welcome" /></a>
+  <a href="https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/yairhdz24/bruma/good%20first%20issue?style=flat-square&color=AF52DE&label=good%20first%20issues&cacheSeconds=600" alt="Good first issues" /></a>
+</p>
 
 [**Descargar**](#descargar) · [English](README.md) · [Cómo funciona](docs/ARCHITECTURE.md) · [Reportar un problema](https://github.com/yairhdz24/bruma/issues/new/choose)
 
-<a href="https://github.com/yairhdz24/bruma/stargazers"><img src="https://img.shields.io/github/stars/yairhdz24/bruma?style=for-the-badge&logo=github&label=%E2%AD%90%20Dale%20una%20estrella&color=FFD34D&labelColor=111111" alt="Dale una estrella a Bruma en GitHub" /></a>
+<a href="https://github.com/yairhdz24/bruma/stargazers"><img src="https://img.shields.io/github/stars/yairhdz24/bruma?style=for-the-badge&logo=github&label=%E2%AD%90%20Dale%20una%20estrella&color=FFD34D&labelColor=111111&cacheSeconds=600" alt="Dale una estrella a Bruma en GitHub" /></a>
 
 **Si Bruma te ahorra tiempo, regálale una ⭐. Es gratis, toma un segundo y así más gente la encuentra.**
 
@@ -181,6 +188,16 @@ cd src-tauri && cargo test
 - [ ] Versiones de macOS notarizadas y una versión para Intel.
 
 Las ideas y los pull requests son bienvenidos; empieza por [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Contribuir
+
+Bruma se construye en público y cualquier contribución es bienvenida, desde corregir un texto hasta agregar un motor nuevo.
+
+1. Elige un issue con la etiqueta [**good first issue**](https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22good+first+issue%22) o [**help wanted**](https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22help+wanted%22), o [propón una idea](https://github.com/yairhdz24/bruma/discussions).
+2. Haz un fork, ejecuta `npm ci && npm run dev` y haz tu cambio. CI compila las apps de macOS y Windows en cada pull request, así que no necesitas Xcode para trabajar en la interfaz.
+3. Abre un pull request. La guía completa está en [CONTRIBUTING.md](CONTRIBUTING.md).
+
+<a href="https://github.com/yairhdz24/bruma/graphs/contributors"><img src="https://contrib.rocks/image?repo=yairhdz24/bruma" alt="Personas que contribuyen" /></a>
 
 ## Apoya a Bruma
 

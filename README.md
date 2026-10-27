@@ -8,15 +8,22 @@
 
 Free, open-source voice keyboard for your Mac. Tap <kbd>fn</kbd>, speak, and clean, punctuated text appears wherever your cursor is: in any app.
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-0A84FF.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/macOS-Apple%20Silicon-111?logo=apple)](#download)
-[![Windows](https://img.shields.io/badge/Windows-beta-555?logo=windows)](#download)
-[![Release](https://img.shields.io/github/v/release/yairhdz24/bruma?color=0A84FF)](https://github.com/yairhdz24/bruma/releases)
-[![Stars](https://img.shields.io/github/stars/yairhdz24/bruma?style=social)](https://github.com/yairhdz24/bruma/stargazers)
+<p>
+  <a href="https://github.com/yairhdz24/bruma/releases/latest"><img src="https://img.shields.io/github/v/release/yairhdz24/bruma?style=flat-square&color=0A84FF&label=release&cacheSeconds=600" alt="Release" /></a>
+  <a href="https://github.com/yairhdz24/bruma/releases"><img src="https://img.shields.io/github/downloads/yairhdz24/bruma/total?style=flat-square&color=34C759&label=downloads&cacheSeconds=600" alt="Downloads" /></a>
+  <a href="https://github.com/yairhdz24/bruma/stargazers"><img src="https://img.shields.io/github/stars/yairhdz24/bruma?style=flat-square&color=FFD34D&logo=github&label=stars&cacheSeconds=600" alt="Stars" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-8E8E93?style=flat-square" alt="MIT" /></a>
+  <br />
+  <a href="#download"><img src="https://img.shields.io/badge/macOS-Apple%20Silicon-111111?style=flat-square&logo=apple&logoColor=white" alt="macOS" /></a>
+  <a href="#download"><img src="https://img.shields.io/badge/Windows-beta-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" /></a>
+  <img src="https://img.shields.io/badge/Tauri%202-Rust%20%2B%20React-24C8DB?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-FF2D55?style=flat-square" alt="PRs welcome" /></a>
+  <a href="https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/yairhdz24/bruma/good%20first%20issue?style=flat-square&color=AF52DE&label=good%20first%20issues&cacheSeconds=600" alt="Good first issues" /></a>
+</p>
 
 [**Download**](#download) · [Español](README.es.md) · [How it works](docs/ARCHITECTURE.md) · [Report a bug](https://github.com/yairhdz24/bruma/issues/new/choose)
 
-<a href="https://github.com/yairhdz24/bruma/stargazers"><img src="https://img.shields.io/github/stars/yairhdz24/bruma?style=for-the-badge&logo=github&label=%E2%AD%90%20Star%20Bruma&color=FFD34D&labelColor=111111" alt="Star Bruma on GitHub" /></a>
+<a href="https://github.com/yairhdz24/bruma/stargazers"><img src="https://img.shields.io/github/stars/yairhdz24/bruma?style=for-the-badge&logo=github&label=%E2%AD%90%20Star%20Bruma&color=FFD34D&labelColor=111111&cacheSeconds=600" alt="Star Bruma on GitHub" /></a>
 
 **If Bruma saves you time, please give it a ⭐. It's free, takes one second, and it's how other people find it.**
 
@@ -181,6 +188,16 @@ cd src-tauri && cargo test
 - [ ] Notarized macOS builds and an Intel build.
 
 Ideas and pull requests are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Contributing
+
+Bruma is built in the open and contributions are very welcome, from typo fixes to new engines.
+
+1. Pick an issue labeled [**good first issue**](https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22good+first+issue%22) or [**help wanted**](https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22help+wanted%22), or [propose an idea](https://github.com/yairhdz24/bruma/discussions).
+2. Fork, run `npm ci && npm run dev`, and make your change. CI builds the macOS and Windows apps for every pull request, so you don't need Xcode to work on the interface.
+3. Open a pull request. The full guide is in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+<a href="https://github.com/yairhdz24/bruma/graphs/contributors"><img src="https://contrib.rocks/image?repo=yairhdz24/bruma" alt="Contributors" /></a>
 
 ## Support Bruma
 
