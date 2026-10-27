@@ -1,0 +1,44 @@
+[package]
+name = "bruma-voice"
+version = "0.7.0"
+description = "Personal cloud dictation for macOS and Windows"
+authors = ["Bruma contributors"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.90"
+
+[lib]
+name = "bruma_voice_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+cc = "1"
+
+[dependencies]
+tauri = { version = "2", features = ["macos-private-api", "tray-icon"] }
+tauri-plugin-global-shortcut = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+parking_lot = "0.12"
+uuid = { version = "1", features = ["v4"] }
+tokio = { version = "1", features = ["sync", "time", "macros", "rt-multi-thread"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+futures-util = "0.3"
+tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream", "multipart"] }
+url = "2"
+cpal = "0.15.3"
+arboard = { version = "3.6", default-features = false }
+keyring = { version = "3.6.3", features = ["apple-native", "windows-native"] }
+open = "5"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse", "Win32_System_DataExchange"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
+panic = "abort"

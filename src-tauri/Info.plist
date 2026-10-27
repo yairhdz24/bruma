@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>NSMicrophoneUsageDescription</key><string>Bruma usa tu micrófono solamente mientras dictas. El audio se envía al motor de voz que elegiste para transcribirlo y no se guarda en disco.</string>
+<key>NSAppleEventsUsageDescription</key><string>Bruma regresa a la aplicación en la que estabas para pegar tu dictado.</string>
+<key>NSHighResolutionCapable</key><true/>
+</dict></plist>

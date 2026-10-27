@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "desktop-windows",
+  "description": "Only local Bruma windows can access events and window controls. Provider requests and keys remain in Rust.",
+  "windows": ["main", "overlay"],
+  "permissions": ["core:default", "core:window:allow-start-dragging", "core:window:allow-minimize", "core:window:allow-hide", "core:window:allow-close", "core:window:allow-toggle-maximize"]
+}

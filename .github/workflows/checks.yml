@@ -1,0 +1,34 @@
+name: Checks
+on:
+  push:
+    branches: [main, 'bruma-*']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  secrets:
+    name: No secrets in the code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  interface:
+    name: Interface builds and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+        env:
+          CI: 'true'
+          PW_CHROMIUM: '1'

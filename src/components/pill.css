@@ -1,0 +1,142 @@
+/* App icon chip (history, sidebar). */
+.app-badge { display:inline-grid; flex:none; place-items:center; overflow:hidden; border-radius:24%; font-weight:600; line-height:1; color:var(--muted); background:var(--chip); font-family:ui-rounded,var(--font-sans); }
+.app-badge[data-native] { background:transparent; border-radius:0; }
+.app-badge img { display:block; width:100%; height:100%; object-fit:contain; }
+
+/* ---------- Floating pill ----------
+   One dark capsule above the Dock that morphs between states with a soft spring.
+   While you talk it wears the app you are writing into: its real icon and its color. */
+.pill-stage {
+  --spring: cubic-bezier(.3, 1.35, .45, 1);
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --brand: rgb(120, 160, 255);
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px;
+  width: 100%; height: 100%; padding-bottom: 10px; box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  color: #f5f5f7; user-select: none; -webkit-user-select: none;
+}
+.pill-above { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 100%; min-height: 0; pointer-events: none; }
+.pill-above > * { position: absolute; bottom: 0; }
+
+.pill-tip, .pill-hint {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 12px; margin: 0;
+  background: rgba(12, 14, 20, .9); border: .5px solid rgba(255, 255, 255, .16);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, .6); font-size: 13px; font-weight: 500; letter-spacing: -.01em; white-space: nowrap;
+}
+.pill-tip { opacity: 0; transform: translateY(6px) scale(.96); transition: opacity .18s var(--ease), transform .3s var(--spring); }
+.pill-tip kbd, .pill-hint kbd { display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 5px; border-radius: 5px; background: rgba(255, 255, 255, .14); font: 600 12px ui-rounded, -apple-system, system-ui, sans-serif; }
+.pill-stage[data-mode='hover'] .pill-tip { opacity: 1; transform: none; transition-delay: .06s; }
+.pill-hint { color: rgba(255, 255, 255, .8); animation: pill-rise .35s var(--spring) both; }
+
+/* Live words above the capsule (streaming engines). */
+.pill-live {
+  max-width: 380px; margin: 0; padding: 9px 14px; border-radius: 16px; text-align: center;
+  background: rgba(12, 14, 20, .86); border: .5px solid rgba(255, 255, 255, .14);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
+  box-shadow: 0 10px 30px -14px rgba(0, 0, 0, .7);
+  font-size: 14px; line-height: 1.4; letter-spacing: -.005em; color: #fff;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  animation: pill-rise .35s var(--spring) both;
+}
+.pill-live span { display: inline; animation: word-in .42s var(--ease) both; }
+@keyframes word-in { from { opacity: 0; filter: blur(6px); } to { opacity: 1; filter: blur(0); } }
+@keyframes pill-rise { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+
+.capsule {
+  --w: 44px; --h: 9px; --level: 0;
+  position: relative; isolation: isolate; overflow: hidden; flex: none;
+  width: var(--w); height: var(--h); border-radius: 999px;
+  background: rgba(14, 16, 20, .74); border: 1px solid rgba(255, 255, 255, .32);
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, .55), inset 0 .5px 0 rgba(255, 255, 255, .1);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6); backdrop-filter: blur(22px) saturate(1.6);
+  transition: width .5s var(--spring), height .5s var(--spring), background-color .25s var(--ease), border-color .25s var(--ease), box-shadow .3s var(--ease), transform .2s var(--ease);
+}
+.pill-stage[data-mode='hover'] .capsule { --w: 104px; --h: 38px; background: rgba(12, 14, 18, .92); border-color: rgba(255, 255, 255, .18); }
+/* While you talk: a small capsule tinted with the color of the app you are writing into. */
+.pill-stage[data-mode='listening'] .capsule, .pill-stage[data-mode='paused'] .capsule {
+  --w: 84px; --h: 34px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 30%, rgba(30, 30, 34, .94)), color-mix(in srgb, var(--brand) 16%, rgba(10, 10, 12, .96)));
+  border-color: color-mix(in srgb, var(--brand) 60%, rgba(255, 255, 255, .25));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 8px 22px -10px rgba(0, 0, 0, .6), 0 0 calc(4px + var(--level) * 22px) calc(var(--level) * 3px) color-mix(in srgb, var(--brand) 60%, transparent);
+}
+/* Hover reveals cancel and finish. */
+.pill-stage[data-mode='listening'] .capsule:hover, .pill-stage[data-mode='paused'] .capsule:hover { --w: 148px; }
+.pill-stage[data-hold] .capsule:hover { --w: 84px; }
+.pill-stage[data-mode='working'] .capsule { --w: 64px; --h: 30px; background: color-mix(in srgb, var(--brand) 18%, rgba(10, 10, 12, .95)); border-color: color-mix(in srgb, var(--brand) 45%, rgba(255, 255, 255, .16)); }
+.pill-stage[data-mode='done'] .capsule { --w: 92px; --h: 30px; background: rgba(10, 10, 12, .95); border-color: rgba(255, 255, 255, .16); }
+.pill-stage[data-mode='done'][data-copied] .capsule { --w: 200px; }
+.pill-stage[data-mode='review'] .capsule { --w: 340px; --h: 44px; background: rgba(8, 9, 12, .96); border-color: rgba(255, 255, 255, .14); }
+.pill-stage[data-mode='error'] .capsule { --w: 320px; --h: 46px; border-radius: 18px; background: rgba(40, 10, 12, .95); border-color: rgba(255, 120, 120, .35); }
+.pill-stage[data-mode='learn'] .capsule { --w: 404px; --h: 44px; background: rgba(8, 9, 12, .96); border-color: rgba(140, 180, 255, .35); }
+.pill-stage[data-mode='learned'] .capsule { --w: 220px; --h: 36px; background: rgba(8, 9, 12, .95); border-color: rgba(255, 255, 255, .16); }
+.pill-stage[data-mode='idle'] .capsule:hover { transform: scaleY(1.2); }
+
+/* The app's color, breathing with your voice behind the waveform. */
+.capsule-glow {
+  position: absolute; inset: -60% -20%; z-index: -1; opacity: 0; pointer-events: none; filter: blur(16px);
+  background: radial-gradient(40% 60% at 50% 60%, var(--brand), transparent 72%);
+  transition: opacity .3s var(--ease);
+}
+.pill-stage[data-mode='listening'] .capsule-glow { opacity: calc(.18 + var(--level) * .6); }
+.pill-stage[data-mode='working'] .capsule-glow { opacity: .3; animation: glow-breathe 1.6s var(--ease) infinite alternate; }
+@keyframes glow-breathe { from { opacity: .16; } to { opacity: .42; } }
+
+/* Each state's content is laid over the others and cross-fades. */
+.face {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 5px;
+  opacity: 0; transform: scale(.9); pointer-events: none; white-space: nowrap;
+  transition: opacity .16s var(--ease), transform .3s var(--spring);
+}
+.pill-stage[data-mode='hover'] .face-hover,
+.pill-stage[data-mode='listening'] .face-record, .pill-stage[data-mode='paused'] .face-record,
+.pill-stage[data-mode='working'] .face-working, .pill-stage[data-mode='done'] .face-done,
+.pill-stage[data-mode='review'] .face-review, .pill-stage[data-mode='error'] .face-error,
+.pill-stage[data-mode='learn'] .face-learn, .pill-stage[data-mode='learned'] .face-learned {
+  opacity: 1; transform: none; pointer-events: auto; transition-delay: .09s;
+}
+.face-record { justify-content: center; gap: 4px; padding: 0 4px; }
+.pill-btn.is-side { width: 0; height: 24px; opacity: 0; overflow: hidden; transition: width .35s var(--spring), opacity .2s var(--ease); }
+.capsule:hover .pill-btn.is-side, .pill-btn.is-side:focus-visible { width: 24px; opacity: 1; }
+.pill-stage[data-hold] .pill-btn.is-side { width: 0 !important; opacity: 0 !important; }
+.face-working { gap: 10px; }
+.face-done { gap: 6px; padding: 0 12px; font-size: 12.5px; font-weight: 600; }
+.face-done svg, .face-learned svg { color: #7fe3a4; }
+.face-learned { gap: 7px; padding: 0 14px; font-size: 13px; font-weight: 600; }
+.face-done > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.face-review { justify-content: flex-start; padding-left: 16px; }
+.review-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+.face-error { padding: 0 16px; white-space: normal; }
+.face-learn { justify-content: flex-start; gap: 9px; padding: 0 6px 0 14px; }
+.face-learn > svg { flex: none; color: #9cc2ff; }
+.learn-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; }
+.learn-text b { font-weight: 650; }
+.pill-btn.is-text { width: auto; padding: 0 12px; font-size: 12.5px; font-weight: 650; }
+.face-error span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #ffd0d0; font-size: 12px; line-height: 1.3; text-align: center; }
+
+.pill-btn {
+  display: grid; place-items: center; flex: none; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 999px;
+  color: #f5f5f7; background: rgba(255, 255, 255, .1); cursor: pointer; transition: background .15s, transform .15s var(--spring);
+}
+.pill-btn:hover { background: rgba(255, 255, 255, .2); }
+.pill-btn:active { transform: scale(.9); }
+.pill-btn.is-wide { width: 58px; }
+.pill-btn.is-stop { background: #fff; color: #0b0b0d; }
+.pill-btn.is-stop:hover { background: #e8e8ed; }
+.pill-btn:focus-visible { outline: 2px solid #8dbbff; outline-offset: 2px; }
+.stop-square { width: 10px; height: 10px; border-radius: 2.5px; background: #ff453a; }
+
+.wave { display: flex; align-items: center; justify-content: center; gap: 3.5px; height: 20px; flex: none; width: 52px; }
+.wave span { display: block; width: 3.5px; height: 20px; border-radius: 3px; background: color-mix(in srgb, var(--brand) 30%, #fff); box-shadow: 0 0 6px color-mix(in srgb, var(--brand) 50%, transparent); transform: scaleY(.22); transform-origin: center; transition: transform 90ms ease-out; }
+.pill-stage[data-mode='paused'] .wave span { background: rgba(255, 255, 255, .4); }
+
+.dots { display: flex; gap: 5px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: color-mix(in srgb, var(--brand) 35%, #fff); animation: pill-dot 1s var(--ease) infinite; }
+.dots i:nth-child(2) { animation-delay: .14s; } .dots i:nth-child(3) { animation-delay: .28s; }
+@keyframes pill-dot { 0%, 80%, 100% { opacity: .3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+
+.pill-stage[data-reduced-motion] .capsule, .pill-stage[data-reduced-motion] .face, .pill-stage[data-reduced-motion] .pill-tip { transition-duration: .01s; }
+.pill-stage[data-reduced-motion] .dots i, .pill-stage[data-reduced-motion] .pill-live span { animation: none; opacity: .9; }
+@media (prefers-reduced-motion: reduce) { .capsule, .face, .pill-tip { transition-duration: .01s !important; } .dots i, .pill-live span { animation: none; } }
+
+.overlay-stage { width: 100vw; height: 100vh; background: transparent; overflow: hidden; }
