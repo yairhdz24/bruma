@@ -81,8 +81,8 @@ jobs:
       - name: Name the installers
         run: |
           mkdir release
-          find dist -name '*.dmg' -exec cp {} "release/Bruma-${GITHUB_REF_NAME}-macOS-Apple-Silicon.dmg" \;
-          find dist -name '*.exe' -exec cp {} "release/Bruma-${GITHUB_REF_NAME}-Windows-x64-setup.exe" \;
+          find dist -name '*.dmg' -exec cp {} "release/Bruma-macOS-Apple-Silicon.dmg" \;
+          find dist -name '*.exe' -exec cp {} "release/Bruma-Windows-x64-setup.exe" \;
           ls -la release
       - uses: softprops/action-gh-release@v2
         with:

@@ -9,12 +9,12 @@
 Teclado por voz gratuito y de código abierto para tu Mac. Toca <kbd>fn</kbd>, habla, y el texto aparece limpio y bien puntuado donde está tu cursor, en cualquier app.
 
 [![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-0A84FF.svg)](LICENSE)
-[![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon-111?logo=apple)](#instalación)
-[![Windows](https://img.shields.io/badge/Windows-beta-555?logo=windows)](#instalación)
+[![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon-111?logo=apple)](#descargar)
+[![Windows](https://img.shields.io/badge/Windows-beta-555?logo=windows)](#descargar)
 [![Versión](https://img.shields.io/github/v/release/yairhdz24/bruma?color=0A84FF&label=versión)](https://github.com/yairhdz24/bruma/releases)
 [![Estrellas](https://img.shields.io/github/stars/yairhdz24/bruma?style=social)](https://github.com/yairhdz24/bruma/stargazers)
 
-[**Descargar**](https://github.com/yairhdz24/bruma/releases/latest) · [English](README.md) · [Cómo funciona](docs/ARCHITECTURE.md) · [Reportar un problema](https://github.com/yairhdz24/bruma/issues/new/choose)
+[**Descargar**](#descargar) · [English](README.md) · [Cómo funciona](docs/ARCHITECTURE.md) · [Reportar un problema](https://github.com/yairhdz24/bruma/issues/new/choose)
 
 <img src="docs/assets/pill.gif" width="600" alt="La píldora de Bruma escuchando, teñida del color de la app donde escribes" />
 
@@ -50,30 +50,78 @@ Teclado por voz gratuito y de código abierto para tu Mac. Toca <kbd>fn</kbd>, h
 </tr>
 </table>
 
-## Instalación
+## Descargar
 
-### macOS (Apple Silicon, macOS 12 o superior)
+| | |
+| --- | --- |
+| 🍎 **macOS** · Apple Silicon (M1–M4), macOS 12 o superior | [**Descargar Bruma para Mac (.dmg)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-macOS-Apple-Silicon.dmg) |
+| 🪟 **Windows** 10/11 · 64 bits (beta) | [**Descargar Bruma para Windows (.exe)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe) |
 
-**Con una línea** (descarga la última versión y la firma en tu Mac para que macOS conserve tus permisos en cada actualización):
+Todas las versiones y sus novedades: [Releases](https://github.com/yairhdz24/bruma/releases).
+
+### Instalar en macOS
+
+1. Abre el `.dmg` y arrastra **Bruma** a **Aplicaciones**.
+2. Bruma todavía no está notarizada por Apple, así que la primera vez haz **clic derecho en Bruma → Abrir → Abrir**. (O ejecuta `xattr -dr com.apple.quarantine /Applications/Bruma.app` en Terminal.)
+3. La bienvenida te pide **Micrófono** (para escucharte) y **Accesibilidad** (para pegar el texto y leer la tecla fn). Activa Bruma en cada lista.
+4. En **Ajustes del Sistema → Teclado**, cambia **"Al presionar la tecla 🌐" → "No hacer nada"**, para que fn quede libre para Bruma.
+
+<details>
+<summary><b>¿Prefieres Terminal? Una línea que además conserva tus permisos en cada actualización</b></summary>
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/install-mac.sh | zsh
 ```
 
-**O a mano:** descarga `Bruma-…-macOS-Apple-Silicon.dmg` desde [Releases](https://github.com/yairhdz24/bruma/releases/latest) y arrastra Bruma a Aplicaciones. Bruma todavía no está notarizada por Apple, así que la primera vez haz clic derecho en la app → **Abrir** (o ejecuta `xattr -dr com.apple.quarantine /Applications/Bruma.app`).
+Descarga la última versión y la firma con un certificado creado en tu propia Mac, así macOS recuerda los permisos de Micrófono y Accesibilidad cada vez que actualizas. Ejecútala de nuevo para actualizar.
+</details>
 
-### Windows (beta)
+### Instalar en Windows
 
-Descarga `Bruma-…-Windows-x64-setup.exe` desde [Releases](https://github.com/yairhdz24/bruma/releases/latest). Si aparece SmartScreen, elige **Más información → Ejecutar de todas formas**. Usa un atajo como <kbd>Ctrl</kbd>+<kbd>Espacio</kbd> (la tecla fn solo funciona en macOS).
+1. Ejecuta `Bruma-Windows-x64-setup.exe`. Si aparece SmartScreen, haz clic en **Más información → Ejecutar de todas formas** (la app todavía no está firmada).
+2. Permite el acceso al micrófono si Windows lo pide (**Configuración → Privacidad → Micrófono**).
+3. Usa un atajo como <kbd>Ctrl</kbd>+<kbd>Espacio</kbd> para dictar (la tecla fn solo existe en macOS).
 
-## Configúrala en dos minutos
+## Consigue tu clave gratis
 
-1. **Permisos.** La bienvenida te pide **Micrófono** (para escucharte) y **Accesibilidad** (para pegar y leer la tecla fn).
-2. **Consigue una clave gratis.** Créala en [console.groq.com/keys](https://console.groq.com/keys) (no pide tarjeta) y pégala en **Conexiones**.
-3. **Opcional:** agrega una clave de Claude, OpenAI o Deepgram para un pulido todavía mejor o palabras en vivo.
-4. En macOS, ve a **Ajustes del Sistema → Teclado → "Al presionar 🌐: No hacer nada"** para que fn quede libre para Bruma.
+Bruma no tiene servidor, así que usa **tu propia clave**, que nunca sale de tu computadora. Para empezar solo necesitas **una**, y la de Groq es gratis.
 
-Listo. Pon el cursor donde quieras, toca <kbd>fn</kbd> y habla.
+### Groq: gratis (recomendada)
+
+1. Entra a **[console.groq.com](https://console.groq.com)** e inicia sesión con Google, GitHub o correo. No pide tarjeta.
+2. En el menú, abre **API Keys** → **Create API Key** y ponle de nombre `Bruma`.
+3. Copia la clave (empieza con `gsk_`). Solo se muestra una vez.
+4. En Bruma: **Conexiones → Groq → pega la clave → Guardar**. Listo, ya puedes dictar.
+
+Con esa misma clave Bruma también puede pulir tu texto gratis (Conexiones → Pulir el texto → Groq).
+
+### Claves opcionales
+
+| Servicio | Qué agrega | Dónde se consigue | Costo |
+| --- | --- | --- | --- |
+| **Claude** (Anthropic) | La mejor redacción y puntuación | [console.anthropic.com → Settings → API Keys](https://console.anthropic.com/settings/keys) (empieza con `sk-ant-`) | Pago por uso; necesitas créditos en Billing |
+| **Deepgram** | Las palabras aparecen en vivo mientras hablas | [console.deepgram.com](https://console.deepgram.com) → API Keys → Create | US$200 de crédito gratis para empezar |
+| **OpenAI** | Modelos GPT-4o Transcribe | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) (empieza con `sk-`) | Pago por uso |
+| **Tu propio servidor** | 100% tuyo, sin terceros | Cualquier Whisper compatible con OpenAI, por ejemplo [Speaches](https://github.com/speaches-ai/speaches) | Tu hardware |
+
+Pega cada clave en **Conexiones**, elige el modelo que quieras de la lista y listo.
+
+## Cómo se usa
+
+| Acción | macOS | Windows |
+| --- | --- | --- |
+| Empezar / terminar y pegar | Toca <kbd>fn</kbd> | <kbd>Ctrl</kbd>+<kbd>Espacio</kbd> (configurable) |
+| Mantener para hablar | Mantén <kbd>fn</kbd>, habla y suéltala | — |
+| Tecla alternativa | <kbd>fn</kbd>+<kbd>Espacio</kbd> o cualquier atajo (Ajustes → Atajo) | Cualquier atajo |
+| Cancelar | <kbd>Esc</kbd> | <kbd>Esc</kbd> |
+
+- **Pon el cursor donde quieres el texto**, en cualquier app: WhatsApp, Slack, Correo, Notas, Claude, ChatGPT o tu editor de código.
+- **La píldora sobre el Dock** te dice qué está pasando. Mientras escucha se tiñe del color de la app donde vas a escribir, muestra puntos mientras escribe y una palomita cuando pega. Si pasas el puntero encima mientras escucha, puedes cancelar o terminar con el mouse.
+- **Habla natural.** Puedes decir "nueva línea", "coma" o "signo de interrogación". Corrígete en voz alta ("a las cinco, no, a las seis") y Bruma se queda con la corrección.
+- **Diccionario:** agrega nombres y términos que quieres bien escritos (Supabase, tu empresa, personas). Si corriges una palabra justo después de pegar, Bruma te ofrece agregarla.
+- **Atajos de voz:** di "mi correo" y se escribe tu dirección.
+- **Tus reglas:** en **Ajustes → Tus reglas** escribe instrucciones fijas como "tutea siempre" o "nada de emojis".
+- **Historial:** todo lo que dictaste, con la app a la que fue, para copiarlo otra vez. Es local y lo puedes desactivar.
 
 ## Cómo funciona
 
