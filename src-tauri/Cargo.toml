@@ -1,6 +1,6 @@
 [package]
 name = "bruma-voice"
-version = "0.7.1"
+version = "0.7.2"
 description = "Personal cloud dictation for macOS and Windows"
 authors = ["Bruma contributors"]
 license = "MIT"
