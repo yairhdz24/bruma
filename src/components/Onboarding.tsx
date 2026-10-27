@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
-import { GlobeIcon, InfoIcon } from '@phosphor-icons/react';
+import { ArrowUpRightIcon, GlobeIcon, InfoIcon } from '@phosphor-icons/react';
 import { command, errorMessage, isNative } from '../lib/bridge';
 import { ONBOARDING_VERSION, openPermissionSettings } from '../lib/onboarding';
 import { shortcutKeycaps } from '../lib/shortcut';
@@ -56,6 +56,25 @@ function Practice({ kind, settings, voice, onWords }: { kind: 'messages' | 'mail
       </div>
     </div>
   </div>;
+}
+
+const GROQ_KEYS = 'https://console.groq.com/keys';
+const openGroq = () => { if (isNative) void command('open_url', { url: GROQ_KEYS }).catch(() => {}); else window.open(GROQ_KEYS, '_blank', 'noopener'); };
+
+/** First-timers rarely know what an API key is: three plain steps to a free one. */
+function KeyGuide() {
+  return <section className="key-guide" aria-labelledby="key-guide-title">
+    <div className="key-guide-head">
+      <h2 id="key-guide-title">Consigue tu clave gratis en un minuto</h2>
+      <span className="key-guide-free">Gratis · sin tarjeta</span>
+    </div>
+    <ol>
+      <li><span><b>Abre Groq</b> y entra con Google o con tu correo.</span><button type="button" className="button-primary key-guide-open" onClick={openGroq}>Abrir Groq<ArrowUpRightIcon size={13} weight="bold" aria-hidden="true" /></button></li>
+      <li><span>Toca <b>Create API Key</b>, ponle de nombre <i>Bruma</i> y copia la clave (empieza con <code>gsk_</code>).</span></li>
+      <li><span>Vuelve aquí, pégala en <b>Clave de Groq</b> y toca <b>Guardar</b>.</span></li>
+    </ol>
+    <p className="key-guide-note">La clave se guarda solo en tu computadora. El plan gratis de Groq alcanza para horas de dictado al día.</p>
+  </section>;
 }
 
 export default function Onboarding({ settings, voice, onDone, ...connections }: Props) {
@@ -128,6 +147,7 @@ export default function Onboarding({ settings, voice, onDone, ...connections }: 
         {step === 'engine' && <div className="tour-center">
           <h1>¿Quién escucha?</h1>
           <p className="tour-lead">Un motor convierte tu voz en texto con tu propia clave, sin intermediarios. Deepgram muestra las palabras mientras hablas; Groq es gratis para uso personal.</p>
+          {!ready && settings.sttProvider === 'groq' && <KeyGuide />}
           <div className="tour-panel"><Connections {...connections} settings={settings} engineOnly /></div>
           <div className="tour-actions"><button type="button" className="button-primary" disabled={!ready} onClick={next}>{ready ? 'Continuar' : 'Guarda una clave para continuar'}</button>{!ready && <button type="button" className="button-secondary" onClick={next}>Hacerlo después</button>}</div>
         </div>}

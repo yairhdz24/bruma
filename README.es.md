@@ -21,7 +21,7 @@ Teclado por voz gratuito y de código abierto para tu Mac. Toca <kbd>fn</kbd>, h
   <a href="https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/yairhdz24/bruma/good%20first%20issue?style=flat-square&color=AF52DE&label=good%20first%20issues&cacheSeconds=600" alt="Good first issues" /></a>
 </p>
 
-[**Descargar**](#descargar) · [English](README.md) · [Cómo funciona](docs/ARCHITECTURE.md) · [Reportar un problema](https://github.com/yairhdz24/bruma/issues/new/choose)
+[**Descargar**](#descargar) · [Sitio web](https://yairhdz24.github.io/bruma/#es) · [English](README.md) · [Cómo funciona](docs/ARCHITECTURE.md) · [Reportar un problema](https://github.com/yairhdz24/bruma/issues/new/choose)
 
 <a href="https://github.com/yairhdz24/bruma/stargazers"><img src="https://img.shields.io/github/stars/yairhdz24/bruma?style=for-the-badge&logo=github&label=%E2%AD%90%20Dale%20una%20estrella&color=FFD34D&labelColor=111111&cacheSeconds=600" alt="Dale una estrella a Bruma en GitHub" /></a>
 
@@ -69,6 +69,12 @@ Teclado por voz gratuito y de código abierto para tu Mac. Toca <kbd>fn</kbd>, h
 | 🪟 **Windows** 10/11 · 64 bits (beta) | [**Descargar Bruma para Windows (.exe)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe) |
 
 Todas las versiones y sus novedades: [Releases](https://github.com/yairhdz24/bruma/releases).
+
+**¿Usas [Homebrew](https://brew.sh)?** Un comando la instala y `brew upgrade` la mantiene al día:
+
+```sh
+brew install --cask yairhdz24/tap/bruma
+```
 
 ### Instalar en macOS
 

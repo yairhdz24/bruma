@@ -118,6 +118,18 @@ input:checked + .switch { background: var(--sky); }
 .tour-small { color: var(--muted); font-size: 12.5px; line-height: 1.5; }
 .tour .sky-card { min-height: 330px; }
 .tour-panel { width: min(560px, 100%); margin-top: 24px; text-align: left; }
+.key-guide { width: min(560px, 100%); margin: 22px auto 0; padding: 16px 18px 14px; border-radius: 18px; text-align: left; background: color-mix(in srgb, var(--sky) 7%, var(--surface)); border: 1px solid color-mix(in srgb, var(--sky) 22%, var(--line)); }
+.key-guide-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.key-guide h2 { margin: 0; font-family: var(--font-display); font-size: 15px; font-weight: 650; letter-spacing: -.01em; color: var(--text); }
+.key-guide-free { padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: var(--success); background: color-mix(in srgb, var(--success) 12%, transparent); }
+.key-guide ol { margin: 12px 0 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 9px; }
+.key-guide li { counter-increment: step; position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; padding-left: 32px; min-height: 24px; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+.key-guide li::before { content: counter(step); position: absolute; left: 0; top: 1px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; font-size: 12px; font-weight: 700; color: #fff; background: var(--sky); }
+.key-guide li b { color: var(--text); font-weight: 600; }
+.key-guide code { padding: 1px 5px; border-radius: 6px; background: var(--chip); color: var(--text); font-size: 12px; }
+.key-guide-open { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 13px; }
+.key-guide-note { margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+
 
 /* fn key test */
 .key-test { display: grid; gap: 16px; justify-items: center; width: min(460px, 100%); margin-top: 24px; padding: 18px; border-radius: 22px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }

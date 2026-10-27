@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bruma · Free voice keyboard for Mac</title>
+<meta name="description" content="Bruma is a free, open-source voice keyboard for macOS. Tap fn, speak, and clean, punctuated text appears in any app. Bring your own key; Groq's free tier covers hours a day.">
+<meta property="og:title" content="Bruma · Talk. Bruma types.">
+<meta property="og:description" content="Free, open-source voice keyboard for Mac. Tap fn, speak, and clean text appears in any app.">
+<meta property="og:image" content="https://yairhdz24.github.io/bruma/social-preview.png">
+<meta property="og:url" content="https://yairhdz24.github.io/bruma/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="bruma-icon-32.png">
+<link rel="apple-touch-icon" href="bruma-icon-256.png">
+<style>
+:root{
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',system-ui,sans-serif;
+  --bg:#fbfcfe;--text:#0f1729;--muted:#556072;--line:#e2e7ef;--chip:#edf1f7;--surface:#fff;
+  --sky:#3c7fd8;--sky-deep:#1d4fa8;--ink:#0f1729;--ok:#1d8a52;
+  --shadow:0 1px 2px rgba(16,36,80,.06),0 18px 40px -20px rgba(30,64,140,.35);
+  --r:22px;
+}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1018;--text:#eef2f8;--muted:#9aa5b8;--line:#222b3c;--chip:#1a2232;--surface:#121a28;--ok:#5fd496;--shadow:0 1px 2px rgba(0,0,0,.4),0 18px 40px -20px rgba(0,0,0,.8)}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit}
+img{max-width:100%;display:block}
+.container{width:min(1120px,100% - 40px);margin:0 auto}
+kbd{display:inline-grid;place-items:center;min-width:1.9em;height:1.6em;padding:0 .4em;border-radius:.35em;font:600 .85em var(--font);color:#0f1729;background:linear-gradient(#fff,#e6ecf5);box-shadow:0 2px 0 #b3bfd2,0 4px 10px -6px rgba(0,0,0,.4);vertical-align:.08em}
+/* nav */
+.nav{position:fixed;inset:0 0 auto;z-index:20;transition:background .25s,box-shadow .25s}
+.nav.solid{background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(18px) saturate(1.6);box-shadow:0 1px 0 var(--line)}
+.nav .container{display:flex;align-items:center;gap:20px;height:64px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;letter-spacing:-.02em;text-decoration:none}
+.logo img{width:32px;height:32px}
+.nav-links{display:flex;gap:22px;margin-left:auto;font-size:14.5px}
+.nav-links a{text-decoration:none;opacity:.8}.nav-links a:hover{opacity:1}
+.nav:not(.solid){color:#fff}
+.lang{display:flex;border:1px solid color-mix(in srgb,currentColor 30%,transparent);border-radius:999px;padding:2px}
+.lang button{border:0;background:none;color:inherit;font:600 12.5px var(--font);padding:4px 10px;border-radius:999px;cursor:pointer;opacity:.7}
+.lang button[aria-pressed=true]{background:color-mix(in srgb,currentColor 18%,transparent);opacity:1}
+.gh{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;font:600 13.5px var(--font);text-decoration:none;background:color-mix(in srgb,currentColor 12%,transparent);border:1px solid color-mix(in srgb,currentColor 25%,transparent)}
+.gh svg{width:16px;height:16px}
+/* hero */
+.hero{position:relative;color:#fff;padding:128px 0 96px;background:#0d3d9a url(bruma-sky.jpg) center 35%/cover;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(6,28,84,.85),rgba(10,46,130,.55) 50%,rgba(20,80,180,.1) 85%)}
+.hero::after{content:"";position:absolute;inset:auto 0 0;height:120px;background:linear-gradient(transparent,var(--bg))}
+.hero .container{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:center}
+.eyebrow{display:inline-flex;gap:8px;align-items:center;padding:6px 13px;border-radius:999px;font-size:13.5px;font-weight:600;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(8px)}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:#7dffa8;box-shadow:0 0 10px #7dffa8}
+h1{margin:22px 0 0;font-size:clamp(48px,7vw,86px);line-height:.98;letter-spacing:-.045em;font-weight:750}
+h1 em{font-style:normal;color:#bfe0ff}
+.lead{margin:22px 0 0;font-size:20px;line-height:1.5;color:rgba(235,243,255,.92);max-width:32ch}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:13px 20px;border-radius:14px;font:650 15.5px var(--font);text-decoration:none;cursor:pointer;border:0;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn svg{width:18px;height:18px}
+.btn-light{background:#fff;color:#0f1729;box-shadow:0 10px 26px -10px rgba(0,10,40,.6)}
+.btn-glass{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(8px)}
+.brew{display:inline-flex;align-items:center;gap:10px;margin-top:18px;padding:9px 10px 9px 14px;border-radius:12px;background:rgba(5,15,40,.45);border:1px solid rgba(255,255,255,.18);font:500 13.5px ui-monospace,SFMono-Regular,Menlo,monospace;color:#dbe8ff}
+.brew button{border:0;border-radius:8px;padding:5px 10px;font:600 12px var(--font);background:rgba(255,255,255,.16);color:#fff;cursor:pointer}
+.fine{margin-top:16px;font-size:13.5px;color:rgba(225,236,255,.75)}
+/* demo */
+.stage{position:relative;height:330px}
+.win{position:absolute;inset:0 0 80px;border-radius:24px;padding:20px 24px;color:#0f1729;background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(244,248,253,.9));box-shadow:0 30px 70px -20px rgba(0,20,70,.6),inset 0 1px 0 #fff;overflow:hidden}
+.bar{display:flex;gap:8px;align-items:center}.bar i{width:12px;height:12px;border-radius:50%}
+.bar b{margin-left:12px;font-size:14px;color:#556072;display:flex;align-items:center;gap:8px}
+.bar b span{width:10px;height:10px;border-radius:3px;background:var(--app)}
+.thread{margin-top:22px;display:flex;flex-direction:column;gap:12px}
+.q{align-self:flex-start;max-width:80%;padding:11px 15px;border-radius:18px 18px 18px 6px;background:#e9eef6;font-size:16px}
+.a{align-self:flex-end;max-width:86%;min-height:46px;padding:11px 15px;border-radius:18px 18px 6px 18px;background:var(--app);color:#fff;font-size:16px;line-height:1.45;box-shadow:0 8px 20px -10px var(--app);transition:background .4s}
+.a:empty{opacity:0}
+.caret{display:inline-block;width:2px;height:18px;background:currentColor;margin-left:2px;vertical-align:-3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.mail .q{display:none}.mail .a{align-self:stretch;max-width:none;background:#fff;color:#0f1729;border:1px solid #e2e7ef;border-radius:12px;box-shadow:none}
+.pill{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;gap:10px;height:46px;min-width:86px;padding:0 14px;border-radius:999px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--app) 34%,rgba(30,30,34,.95)),color-mix(in srgb,var(--app) 16%,rgba(10,10,12,.97)));
+  border:1px solid color-mix(in srgb,var(--app) 60%,rgba(255,255,255,.25));box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 14px 30px -10px rgba(0,0,0,.6),0 0 24px 2px color-mix(in srgb,var(--app) 55%,transparent);transition:all .45s cubic-bezier(.2,.8,.2,1)}
+.wave{display:flex;gap:4px;align-items:center;height:24px}
+.wave span{width:4px;height:24px;border-radius:3px;background:color-mix(in srgb,var(--app) 25%,#fff);transform:scaleY(.25);transition:transform .09s}
+.dots{display:none;gap:5px}.dots i{width:6px;height:6px;border-radius:50%;background:#fff;animation:dot 1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.done{display:none;color:#fff;font-size:13.5px;font-weight:600;gap:6px;align-items:center}
+.stage[data-s=work] .wave,.stage[data-s=done] .wave{display:none}
+.stage[data-s=work] .dots{display:flex}
+.stage[data-s=done] .done{display:flex}
+.stage[data-s=idle] .pill{min-width:56px;height:10px;padding:0;background:rgba(15,20,30,.55);box-shadow:none;border-color:rgba(255,255,255,.4)}
+.stage[data-s=idle] .wave{display:none}
+/* sections */
+section{padding:96px 0}
+.kicker{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky)}
+h2{margin:10px 0 0;font-size:clamp(32px,4.4vw,48px);line-height:1.05;letter-spacing:-.035em;font-weight:720}
+.sub{margin:16px 0 0;color:var(--muted);font-size:18px;max-width:58ch}
+.center{text-align:center}.center .sub{margin-left:auto;margin-right:auto}
+.apps{padding:20px 0 0}
+.apps p{text-align:center;color:var(--muted);font-size:14px;margin:0}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+.chips span{padding:8px 15px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:14.5px;font-weight:550;display:flex;gap:8px;align-items:center}
+.chips i{width:9px;height:9px;border-radius:3px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px}
+.card{padding:24px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.card .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:21px;background:color-mix(in srgb,var(--sky) 12%,transparent)}
+.card h3{margin:16px 0 0;font-size:18px;letter-spacing:-.015em}
+.card p{margin:8px 0 0;color:var(--muted);font-size:15px}
+.shots{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;margin-top:44px;align-items:start}
+.shots img{border-radius:18px;border:1px solid var(--line);box-shadow:var(--shadow)}
+.shots img+img{margin-top:60px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px;counter-reset:s}
+.step{position:relative;padding:28px 24px 24px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--sky);color:#fff;font-weight:700}
+.step h3{margin:16px 0 0;font-size:19px}.step p{margin:8px 0 0;color:var(--muted);font-size:15px}
+.step code{font:500 13px ui-monospace,Menlo,monospace;background:var(--chip);padding:2px 6px;border-radius:6px}
+.engines{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:40px}
+.engine{padding:20px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+.engine img{width:36px;height:36px;border-radius:10px}
+.engine .dark{background:#000;padding:5px}
+.engine b{display:block;margin-top:12px;font-size:16px}
+.engine span{display:block;margin-top:4px;color:var(--muted);font-size:14px}
+.engine .price{margin-top:12px;font-weight:650;color:var(--ok);font-size:14px}
+.privacy{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.list{display:grid;gap:14px;margin:0;padding:0;list-style:none}
+.list li{display:flex;gap:12px;font-size:16px}
+.list li::before{content:"✓";flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;background:var(--ok)}
+.faq{max-width:760px;margin:40px auto 0}
+details{border-bottom:1px solid var(--line);padding:18px 4px}
+summary{cursor:pointer;font-weight:620;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::after{content:"+";font-size:22px;line-height:1;color:var(--muted);transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin:10px 0 0;color:var(--muted)}
+.final{margin:0 auto;max-width:1120px;border-radius:32px;padding:72px 32px;text-align:center;color:#fff;background:#0d3d9a url(bruma-sky.jpg) center 70%/cover;position:relative;overflow:hidden}
+.final::before{content:"";position:absolute;inset:0;background:rgba(6,28,84,.55)}
+.final>*{position:relative}
+.final .cta{justify-content:center}
+footer{padding:48px 0 56px;color:var(--muted);font-size:14px}
+footer .container{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
+footer a{text-decoration:none;font-weight:600;color:var(--text)}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s,transform .7s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+@media (max-width:900px){
+  .hero .container,.privacy,.shots{grid-template-columns:1fr}
+  .grid,.steps{grid-template-columns:1fr 1fr}.engines{grid-template-columns:1fr 1fr}
+  .nav-links{display:none}.lang{margin-left:auto}.hero{padding-top:100px}.shots img+img{margin-top:0}
+}
+@media (max-width:600px){.grid,.steps,.engines{grid-template-columns:1fr}.gh .t{display:none}.brew{font-size:12px}.stage{height:320px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav"><div class="container">
+  <a class="logo" href="#"><img src="bruma-icon-256.png" alt="">Bruma</a>
+  <div class="nav-links"><a href="#features" data-t="navFeatures">Features</a><a href="#how" data-t="navHow">How it works</a><a href="#cost" data-t="navCost">Cost</a><a href="#faq">FAQ</a></div>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en">EN</button><button type="button" data-lang="es">ES</button></div>
+  <a class="gh" href="https://github.com/yairhdz24/bruma" aria-label="Star Bruma on GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg><span class="t">Star</span> <span id="stars"></span></a>
+</div></nav>
+
+<header class="hero"><div class="container">
+  <div>
+    <span class="eyebrow"><i></i><span data-t="eyebrow">Free & open source for macOS</span></span>
+    <h1 data-t="h1" data-html>Talk.<br><em>Bruma</em> types.</h1>
+    <p class="lead" data-t="lead" data-html>Tap <kbd>fn</kbd>, speak, and clean, punctuated text appears wherever your cursor is. In any app.</p>
+    <div class="cta">
+      <a class="btn btn-light" href="https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-macOS-Apple-Silicon.dmg"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.77-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.83-.81-3-.79-1.55.02-2.97.9-3.77 2.28-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.87 2.3 1.15-.05 1.59-.75 2.98-.75 1.39 0 1.78.75 3 .72 1.24-.02 2.03-1.12 2.78-2.23.88-1.28 1.24-2.52 1.26-2.58-.03-.01-2.41-.93-2.43-3.68ZM14.1 5.85c.63-.77 1.06-1.84.94-2.9-.91.04-2.02.61-2.67 1.37-.58.67-1.1 1.76-.96 2.8 1.02.08 2.06-.52 2.69-1.27Z"/></svg><span data-t="dlMac">Download for Mac</span></a>
+      <a class="btn btn-glass" href="https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe" data-t="dlWin">Windows (beta)</a>
+    </div>
+    <div class="brew"><span>brew install --cask yairhdz24/tap/bruma</span><button type="button" id="copy" data-t="copy">Copy</button></div>
+    <p class="fine" data-t="fine">Apple Silicon · macOS 12+ · MIT license · No account</p>
+  </div>
+  <div class="stage" id="stage" data-s="idle" aria-hidden="true">
+    <div class="win" id="win">
+      <div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><b><span></span><em id="appname" style="font-style:normal"></em></b></div>
+      <div class="thread"><div class="q" id="q"></div><div class="a" id="a"></div></div>
+    </div>
+    <div class="pill"><span class="wave" id="wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span><span class="dots"><i></i><i></i><i></i></span><span class="done">✓ <span data-t="done">Done</span></span></div>
+  </div>
+</div></header>
+
+<div class="apps container reveal">
+  <p data-t="appsTitle">Works wherever you can type</p>
+  <div class="chips"><span><i style="background:#25d366"></i>WhatsApp</span><span><i style="background:#1f7cf5"></i>Mail</span><span><i style="background:#611f69"></i>Slack</span><span><i style="background:#d97757"></i>Claude</span><span><i style="background:#10a37f"></i>ChatGPT</span><span><i style="background:#2f80ed"></i>VS Code</span><span><i style="background:#f24e1e"></i>Figma</span><span><i style="background:#000"></i>Notion</span><span data-t="more">…and any other app</span></div>
+</div>
+
+<section id="features"><div class="container">
+  <div class="center reveal"><div class="kicker" data-t="featKicker">Why Bruma</div><h2 data-t="featTitle">Writes like you, only faster</h2><p class="sub" data-t="featSub">Speaking is about four times faster than typing. Bruma turns rambling into clean text that fits the app you're in.</p></div>
+  <div class="grid">
+    <div class="card reveal"><div class="ic">🎙️</div><h3 data-t="f1t">fn to talk</h3><p data-t="f1" data-html>Tap <kbd>fn</kbd> to start and again to paste, or hold it while you speak. <kbd>Esc</kbd> cancels anywhere.</p></div>
+    <div class="card reveal"><div class="ic">✨</div><h3 data-t="f2t">Clean, not literal</h3><p data-t="f2">Removes filler words and false starts, applies self-corrections and punctuates properly, Spanish ¿? and ¡! included.</p></div>
+    <div class="card reveal"><div class="ic">🌎</div><h3 data-t="f3t">Mixed languages</h3><p data-t="f3">Switch between Spanish and English mid-sentence. Nothing gets translated unless you ask.</p></div>
+    <div class="card reveal"><div class="ic">🎨</div><h3 data-t="f4t">Feels native</h3><p data-t="f4">A tiny pill above the Dock that takes the color of the app you're writing into. Liquid-glass windows, San Francisco type.</p></div>
+    <div class="card reveal"><div class="ic">📚</div><h3 data-t="f5t">Learns your words</h3><p data-t="f5">Fix a word after Bruma pastes and it offers to add it to your dictionary for next time.</p></div>
+    <div class="card reveal"><div class="ic">✍️</div><h3 data-t="f6t">Your rules</h3><p data-t="f6">Standing instructions in plain words: "always informal", "sign emails as Ana", "no emojis".</p></div>
+  </div>
+  <div class="shots reveal"><img src="home-light.png" alt="Bruma home screen" loading="lazy"><img src="connections.png" alt="Pick engines and models" loading="lazy"></div>
+</div></section>
+
+<section id="how" style="padding-top:24px"><div class="container">
+  <div class="center reveal"><div class="kicker" data-t="howKicker">Two minutes</div><h2 data-t="howTitle">From download to dictating</h2></div>
+  <div class="steps">
+    <div class="step reveal"><h3 data-t="s1t">Install</h3><p data-t="s1" data-html>Open the .dmg and drag Bruma to Applications, or run <code>brew install --cask yairhdz24/tap/bruma</code>.</p></div>
+    <div class="step reveal"><h3 data-t="s2t">Get a free key</h3><p data-t="s2" data-html>The welcome tour walks you through creating a free Groq key (no card needed) and pasting it in.</p></div>
+    <div class="step reveal"><h3 data-t="s3t">Tap fn and talk</h3><p data-t="s3" data-html>Put your cursor anywhere, tap <kbd>fn</kbd>, speak and tap again. The text is pasted, never sent.</p></div>
+  </div>
+</div></section>
+
+<section id="cost" style="padding-top:24px"><div class="container">
+  <div class="center reveal"><div class="kicker" data-t="costKicker">Bring your own key</div><h2 data-t="costTitle">Free for personal use</h2><p class="sub" data-t="costSub">Bruma has no server and no subscription. You pick the engine and use your own key, so you only pay the provider, if anything.</p></div>
+  <div class="engines">
+    <div class="engine reveal"><img src="brands/groq.svg" alt=""><b>Groq</b><span data-t="eGroq">Whisper Large v3 Turbo. Default, very fast.</span><div class="price" data-t="pGroq">Free tier · ~8 h/day</div></div>
+    <div class="engine reveal"><img class="dark" src="brands/deepgram.svg" alt=""><b>Deepgram</b><span data-t="eDg">Nova-3 with live words while you speak.</span><div class="price" data-t="pDg">US$200 starting credit</div></div>
+    <div class="engine reveal"><img src="brands/claude.svg" alt=""><b>Claude</b><span data-t="eCl">Optional polishing with the best writing.</span><div class="price" data-t="pCl">Fractions of a cent</div></div>
+    <div class="engine reveal"><img class="dark" src="brands/openai.svg" alt=""><b>OpenAI</b><span data-t="eOa">GPT-4o Transcribe, or your own Whisper server.</span><div class="price" data-t="pOa">Pay as you go</div></div>
+  </div>
+</div></section>
+
+<section style="padding-top:24px"><div class="container privacy">
+  <div class="reveal"><div class="kicker" data-t="privKicker">Private by design</div><h2 data-t="privTitle">Your voice goes where you say. Nowhere else.</h2><p class="sub" data-t="privSub">Open source, so anyone can check exactly what it does.</p></div>
+  <ul class="list reveal">
+    <li data-t="p1">No Bruma server, no telemetry, no account.</li>
+    <li data-t="p2">Audio lives in memory and is never saved.</li>
+    <li data-t="p3">Keys stay on your computer, in a file only you can read.</li>
+    <li data-t="p4">Never reads password fields.</li>
+    <li data-t="p5">Never presses Enter: it pastes and restores your clipboard.</li>
+  </ul>
+</div></section>
+
+<section id="faq" style="padding-top:24px"><div class="container">
+  <div class="center reveal"><h2 data-t="faqTitle">Questions</h2></div>
+  <div class="faq">
+    <details><summary data-t="q1">Is it really free?</summary><p data-t="a1">Yes. Bruma is MIT-licensed and free. Speech-to-text runs on the provider you choose with your own key; Groq's free tier covers hours of dictation a day for most people.</p></details>
+    <details><summary data-t="q2">Why does macOS say it can't verify the developer?</summary><p data-t="a2">Bruma isn't notarized by Apple yet. Right-click the app and choose Open the first time, or install with Homebrew or the one-line installer, which handle it for you.</p></details>
+    <details><summary data-t="q3">Which languages does it support?</summary><p data-t="a3">It's tuned for Spanish and English, including mixing both in one sentence. Whisper and Nova-3 understand dozens of other languages too.</p></details>
+    <details><summary data-t="q4">Does it work on Intel Macs or Windows?</summary><p data-t="a4">The Mac build is for Apple Silicon today; an Intel build is on the roadmap. A Windows beta is available and uses a shortcut such as Ctrl + Space instead of fn.</p></details>
+    <details><summary data-t="q5">How is this different from Apple's dictation?</summary><p data-t="a5">Bruma uses modern speech models plus an editor that cleans up what you said, respects mixed languages, follows your rules and adapts to each app.</p></details>
+  </div>
+</div></section>
+
+<section style="padding-top:24px"><div class="container"><div class="final reveal">
+  <h2 data-t="finalTitle">Stop typing everything.</h2>
+  <p class="sub" style="color:rgba(235,243,255,.9);margin-left:auto;margin-right:auto" data-t="finalSub">Download Bruma and write your next message with your voice.</p>
+  <div class="cta"><a class="btn btn-light" href="https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-macOS-Apple-Silicon.dmg" data-t="dlMac2">Download for Mac</a><a class="btn btn-glass" href="https://github.com/yairhdz24/bruma" data-t="starCta">★ Star on GitHub</a></div>
+</div></div></section>
+
+<footer><div class="container">
+  <span data-t="credit" data-html>Made by <a href="https://github.com/yairhdz24">Yair Hernández</a> · MIT license</span>
+  <span><a href="https://github.com/yairhdz24/bruma">GitHub</a> · <a href="https://github.com/yairhdz24/bruma/releases" data-t="releases">Releases</a> · <a href="https://github.com/yairhdz24/bruma/issues/new/choose" data-t="report">Report a bug</a></span>
+</div></footer>
+
+<script>
+const T = {
+ es: {
+  navFeatures:'Funciones', navHow:'Cómo funciona', navCost:'Costo', eyebrow:'Gratis y de código abierto para macOS',
+  h1:'Habla.<br><em>Bruma</em> escribe.', lead:'Toca <kbd>fn</kbd>, habla y el texto aparece limpio y bien puntuado donde está tu cursor. En cualquier app.',
+  dlMac:'Descargar para Mac', dlWin:'Windows (beta)', copy:'Copiar', fine:'Apple Silicon · macOS 12+ · Licencia MIT · Sin cuenta', done:'Listo',
+  appsTitle:'Funciona donde puedas escribir', more:'…y cualquier otra app',
+  featKicker:'Por qué Bruma', featTitle:'Escribe como tú, pero más rápido', featSub:'Hablar es unas cuatro veces más rápido que teclear. Bruma convierte lo que dices en texto limpio que se adapta a la app donde estás.',
+  f1t:'fn para hablar', f1:'Toca <kbd>fn</kbd> para empezar y otra vez para pegar, o mantenla mientras hablas. <kbd>Esc</kbd> cancela en cualquier app.',
+  f2t:'Limpio, no literal', f2:'Quita muletillas y titubeos, aplica tus autocorrecciones y puntúa bien, ¡con signos de apertura incluidos!',
+  f3t:'Idiomas mezclados', f3:'Cambia entre español e inglés a media frase. No se traduce nada si no lo pides.',
+  f4t:'Se siente nativa', f4:'Una píldora pequeña sobre el Dock que toma el color de la app donde escribes. Ventanas de vidrio líquido y tipografía San Francisco.',
+  f5t:'Aprende tus palabras', f5:'Si corriges una palabra después de pegar, Bruma te ofrece guardarla en tu diccionario.',
+  f6t:'Tus reglas', f6:'Instrucciones fijas en palabras normales: "tutea siempre", "firma los correos como Ana", "nada de emojis".',
+  howKicker:'Dos minutos', howTitle:'De la descarga a dictar',
+  s1t:'Instala', s1:'Abre el .dmg y arrastra Bruma a Aplicaciones, o usa <code>brew install --cask yairhdz24/tap/bruma</code>.',
+  s2t:'Consigue una clave gratis', s2:'La bienvenida te guía para crear una clave gratis de Groq (sin tarjeta) y pegarla.',
+  s3t:'Toca fn y habla', s3:'Pon el cursor donde quieras, toca <kbd>fn</kbd>, habla y vuelve a tocarla. El texto se pega, nunca se envía.',
+  costKicker:'Tu propia clave', costTitle:'Gratis para uso personal', costSub:'Bruma no tiene servidor ni suscripción. Tú eliges el motor y usas tu clave, así que solo le pagas al proveedor, si acaso.',
+  eGroq:'Whisper Large v3 Turbo. Por defecto, muy rápido.', pGroq:'Plan gratis · ~8 h al día', eDg:'Nova-3 con palabras en vivo mientras hablas.', pDg:'US$200 de crédito inicial',
+  eCl:'Pulido opcional con la mejor redacción.', pCl:'Fracciones de centavo', eOa:'GPT-4o Transcribe, o tu propio servidor Whisper.', pOa:'Pago por uso',
+  privKicker:'Privada por diseño', privTitle:'Tu voz va a donde tú dices. A ningún otro lado.', privSub:'Es de código abierto: cualquiera puede revisar exactamente qué hace.',
+  p1:'Sin servidor de Bruma, sin telemetría y sin cuenta.', p2:'El audio vive en memoria y nunca se guarda.', p3:'Las claves se quedan en tu computadora, en un archivo que solo tú puedes leer.', p4:'Nunca lee campos de contraseña.', p5:'Nunca presiona Enter: pega y restaura tu portapapeles.',
+  faqTitle:'Preguntas',
+  q1:'¿De verdad es gratis?', a1:'Sí. Bruma es gratis y tiene licencia MIT. La voz se transcribe con el proveedor que elijas y tu propia clave; el plan gratis de Groq alcanza para horas de dictado al día.',
+  q2:'¿Por qué macOS dice que no puede verificar al desarrollador?', a2:'Bruma todavía no está notarizada por Apple. La primera vez haz clic derecho en la app y elige Abrir, o instálala con Homebrew o con el instalador de una línea, que lo resuelven por ti.',
+  q3:'¿Qué idiomas entiende?', a3:'Está afinada para español e inglés, incluso mezclados en la misma frase. Whisper y Nova-3 entienden decenas de idiomas más.',
+  q4:'¿Funciona en Macs Intel o en Windows?', a4:'La versión de Mac es para Apple Silicon; la de Intel está en planes. Hay una beta para Windows que usa un atajo como Ctrl + Espacio en lugar de fn.',
+  q5:'¿En qué se diferencia del dictado de Apple?', a5:'Bruma usa modelos de voz modernos y un editor que limpia lo que dijiste, respeta los idiomas mezclados, sigue tus reglas y se adapta a cada app.',
+  finalTitle:'Deja de teclearlo todo.', finalSub:'Descarga Bruma y escribe tu próximo mensaje con la voz.', dlMac2:'Descargar para Mac', starCta:'★ Estrella en GitHub',
+  credit:'Creada por <a href="https://github.com/yairhdz24">Yair Hernández</a> · Licencia MIT', releases:'Versiones', report:'Reportar un problema'
+ }
+};
+const DEMO = {
+ en: [
+  { app:'WhatsApp', color:'#25d366', q:'Are you coming tonight?', a:'Yes! I’ll be there around 8. Want me to bring anything?' },
+  { app:'Mail', color:'#1f7cf5', mail:true, a:'Hi Laura, attached is the proposal we discussed. Let me know if Friday works for a quick call.' },
+  { app:'Slack', color:'#611f69', q:'Is the deploy ready?', a:'Almost. I’m fixing one test, then I’ll ship it to staging.' }
+ ],
+ es: [
+  { app:'WhatsApp', color:'#25d366', q:'¿Vienes hoy en la noche?', a:'¡Sí! Llego como a las 8. ¿Quieres que lleve algo?' },
+  { app:'Correo', color:'#1f7cf5', mail:true, a:'Hola Laura, te adjunto la propuesta que platicamos. ¿Te parece una llamada rápida el viernes?' },
+  { app:'Slack', color:'#611f69', q:'¿Ya está listo el deploy?', a:'Casi. Estoy arreglando un test y lo subo a staging.' }
+ ]
+};
+const en = {};
+document.querySelectorAll('[data-t]').forEach(el => { en[el.dataset.t] = el.hasAttribute('data-html') ? el.innerHTML : el.textContent; });
+let lang = 'en';
+try { lang = localStorage.getItem('bruma-lang') || ''; } catch {}
+if (lang !== 'es' && lang !== 'en') lang = (navigator.language || '').toLowerCase().startsWith('es') ? 'es' : 'en';
+if (location.hash === '#es') lang = 'es'; if (location.hash === '#en') lang = 'en';
+function setLang(next) {
+  lang = next; document.documentElement.lang = next;
+  const dict = next === 'es' ? T.es : en;
+  document.querySelectorAll('[data-t]').forEach(el => { const v = dict[el.dataset.t] ?? en[el.dataset.t]; if (el.hasAttribute('data-html')) el.innerHTML = v; else el.textContent = v; });
+  document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === next)));
+  document.title = next === 'es' ? 'Bruma · Teclado por voz gratis para Mac' : 'Bruma · Free voice keyboard for Mac';
+  try { localStorage.setItem('bruma-lang', next); } catch {}
+  restartDemo();
+}
+document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+
+// Nav turns solid after the hero.
+const nav = document.getElementById('nav');
+addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 40), { passive: true });
+
+// Copy the Homebrew command.
+document.getElementById('copy').addEventListener('click', async e => {
+  try { await navigator.clipboard.writeText('brew install --cask yairhdz24/tap/bruma'); e.target.textContent = lang === 'es' ? '¡Copiado!' : 'Copied!'; setTimeout(() => e.target.textContent = lang === 'es' ? 'Copiar' : 'Copy', 1600); } catch {}
+});
+
+// Live star count.
+fetch('https://api.github.com/repos/yairhdz24/bruma').then(r => r.ok ? r.json() : null).then(d => { if (d && d.stargazers_count) document.getElementById('stars').textContent = d.stargazers_count.toLocaleString(); }).catch(() => {});
+
+// Reveal on scroll.
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// Demo: the pill listens, thinks, and the text lands in each app, tinted with its color.
+const stage = document.getElementById('stage'), win = document.getElementById('win'), qEl = document.getElementById('q'), aEl = document.getElementById('a'), nameEl = document.getElementById('appname');
+const bars = [...document.querySelectorAll('#wave span')];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let timers = [], raf = 0, run = 0;
+const wait = ms => new Promise(r => timers.push(setTimeout(r, ms)));
+function wave(on) {
+  cancelAnimationFrame(raf);
+  if (!on) { bars.forEach(b => b.style.transform = 'scaleY(.25)'); return; }
+  const tick = t => { bars.forEach((b, i) => { const mid = 3, d = Math.abs(i - mid); const v = .3 + (1 - d / mid) * .3 + Math.abs(Math.sin(t / 170 + i * 1.3)) * .45 * (1 - d / 5); b.style.transform = `scaleY(${Math.min(1, v).toFixed(2)})`; }); raf = requestAnimationFrame(tick); };
+  raf = requestAnimationFrame(tick);
+}
+async function loop(id) {
+  for (let i = 0; id === run; i = (i + 1) % 3) {
+    const d = DEMO[lang][i];
+    stage.style.setProperty('--app', d.color); win.style.setProperty('--app', d.color);
+    win.classList.toggle('mail', !!d.mail); nameEl.textContent = d.app; qEl.textContent = d.q || ''; aEl.innerHTML = '';
+    stage.dataset.s = 'idle'; await wait(900); if (id !== run) return;
+    stage.dataset.s = 'listen'; wave(!reduce); await wait(2200); if (id !== run) return;
+    stage.dataset.s = 'work'; wave(false); await wait(700); if (id !== run) return;
+    stage.dataset.s = 'done';
+    const words = d.a.split(' ');
+    if (reduce) aEl.textContent = d.a; else for (let w = 1; w <= words.length; w++) { aEl.innerHTML = words.slice(0, w).join(' ') + '<span class="caret"></span>'; await wait(45); if (id !== run) return; }
+    await wait(2600);
+  }
+}
+function restartDemo() { run++; timers.forEach(clearTimeout); timers = []; loop(run); }
+setLang(lang);
+</script>
+</body>
+</html>

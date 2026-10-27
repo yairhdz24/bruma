@@ -85,7 +85,7 @@ export default function Connections({ settings, providers, onSave, onSaveKey, on
 
   const engineList = <fieldset className="choices">
     <legend className="sr-only">Motor de voz</legend>
-    {engines.map(engine => {
+    {(engineOnly ? [...engines].sort((a, b) => Number(b.id === 'groq') - Number(a.id === 'groq')) : engines).map(engine => {
       const stored = engine.id === 'custom' ? Boolean(settings.sttBaseUrl) : providers[engine.id];
       return <Choice key={engine.id} name="engine" checked={settings.sttProvider === engine.id} onSelect={() => void chooseEngine(engine.id)}
         title={<><Logo src={engine.logo} dark={engine.id === 'openai' || engine.id === 'deepgram'} /><span className="choice-text"><strong>{engine.name}</strong><span>{engine.note}</span></span></>}

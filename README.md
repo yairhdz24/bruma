@@ -21,7 +21,7 @@ Free, open-source voice keyboard for your Mac. Tap <kbd>fn</kbd>, speak, and cle
   <a href="https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/yairhdz24/bruma/good%20first%20issue?style=flat-square&color=AF52DE&label=good%20first%20issues&cacheSeconds=600" alt="Good first issues" /></a>
 </p>
 
-[**Download**](#download) · [Español](README.es.md) · [How it works](docs/ARCHITECTURE.md) · [Report a bug](https://github.com/yairhdz24/bruma/issues/new/choose)
+[**Download**](#download) · [Website](https://yairhdz24.github.io/bruma/) · [Español](README.es.md) · [How it works](docs/ARCHITECTURE.md) · [Report a bug](https://github.com/yairhdz24/bruma/issues/new/choose)
 
 <a href="https://github.com/yairhdz24/bruma/stargazers"><img src="https://img.shields.io/github/stars/yairhdz24/bruma?style=for-the-badge&logo=github&label=%E2%AD%90%20Star%20Bruma&color=FFD34D&labelColor=111111&cacheSeconds=600" alt="Star Bruma on GitHub" /></a>
 
@@ -69,6 +69,12 @@ Free, open-source voice keyboard for your Mac. Tap <kbd>fn</kbd>, speak, and cle
 | 🪟 **Windows** 10/11 · 64-bit (beta) | [**Download Bruma for Windows (.exe)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe) |
 
 All versions and release notes: [Releases](https://github.com/yairhdz24/bruma/releases).
+
+**Using [Homebrew](https://brew.sh)?** One command installs it and `brew upgrade` keeps it current:
+
+```sh
+brew install --cask yairhdz24/tap/bruma
+```
 
 ### Install on macOS
 

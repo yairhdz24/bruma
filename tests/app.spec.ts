@@ -20,6 +20,8 @@ test('welcome tour walks permissions, engine, fn key, practice and speed, and ca
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.getByRole('heading', { name: '¿Quién escucha?' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Guarda una clave para continuar' })).toBeDisabled();
+  await expect(page.getByRole('heading', { name: 'Consigue tu clave gratis en un minuto' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Abrir Groq' })).toBeVisible();
   await page.getByRole('button', { name: 'Hacerlo después', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Modo dictado' })).toBeVisible();
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
