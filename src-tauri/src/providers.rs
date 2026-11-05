@@ -84,7 +84,8 @@ fn read_key(provider: &str) -> Option<String> {
 pub fn key(provider: &str) -> Result<String, String> {
     let missing = || format!("Configura tu clave de {} en Conexiones.", display(provider));
     if !KEY_PROVIDERS.contains(&provider) { return Err("Proveedor no válido.".into()); }
-    if let Some(hit) = cache().lock().get(provider).cloned() { return hit.ok_or_else(missing); }
+    // Only found keys are remembered: a key saved from outside the app is picked up on the next try.
+    if let Some(Some(hit)) = cache().lock().get(provider).cloned() { return Ok(hit); }
     let value = read_key(provider);
     cache().lock().insert(provider.to_string(), value.clone());
     value.ok_or_else(missing)
@@ -125,6 +126,52 @@ pub fn delete_key(provider: &str) -> Result<(), String> {
     }
     cache().lock().insert(provider.to_string(), None);
     Ok(())
+}
+
+/// Forgets "no key" answers, so a key saved from outside the app (for example with the
+/// terminal helper in scripts/) shows up without restarting Bruma.
+pub fn forget_missing() { cache().lock().retain(|_, value| value.is_some()); }
+
+/// True when a text has the shape of this service's API keys.
+pub fn looks_like_key(provider: &str, text: &str) -> bool {
+    let text = text.trim();
+    let tail_ok = |prefix: &str, min: usize| text.starts_with(prefix) && text.len() >= min && text.len() <= 256
+        && text.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-');
+    match provider {
+        "groq" => tail_ok("gsk_", 40),
+        "claude" => tail_ok("sk-ant-", 40),
+        "openai" => tail_ok("sk-", 40) && !text.starts_with("sk-ant-"),
+        "deepgram" => text.len() == 40 && text.chars().all(|c| c.is_ascii_hexdigit()),
+        _ => false,
+    }
+}
+
+/// "gsk_…9fZ2": enough to recognize a key without showing it.
+pub fn mask_key(key: &str) -> String {
+    let key = key.trim();
+    let prefix = ["sk-ant-", "gsk_", "sk-"].into_iter().find(|p| key.starts_with(p)).unwrap_or("");
+    let tail: String = key.chars().rev().take(4).collect::<Vec<_>>().into_iter().rev().collect();
+    format!("{prefix}…{tail}")
+}
+
+/// Asks the service whether it accepts the saved key, with one small read-only request.
+pub async fn verify_key(provider: &str) -> Result<(), String> {
+    if !["groq", "openai", "claude", "deepgram"].contains(&provider) { return Err("Este servicio no se puede comprobar.".into()); }
+    let key = key(provider)?;
+    let client = reqwest::Client::builder().timeout(Duration::from_secs(10)).build().map_err(|_| "No se pudo preparar la conexión.".to_string())?;
+    let request = match provider {
+        "groq" => client.get("https://api.groq.com/openai/v1/models").bearer_auth(&key),
+        "openai" => client.get("https://api.openai.com/v1/models").bearer_auth(&key),
+        "claude" => client.get("https://api.anthropic.com/v1/models?limit=1").header("x-api-key", &key).header("anthropic-version", "2023-06-01"),
+        _ => client.get("https://api.deepgram.com/v1/projects").header("Authorization", format!("Token {key}")),
+    };
+    let response = request.send().await.map_err(|_| format!("No se pudo conectar con {}. Revisa tu internet e intenta de nuevo.", display(provider)))?;
+    match response.status().as_u16() {
+        200..=299 => Ok(()),
+        401 | 403 => Err(format!("{} rechazó la clave. Copia la clave completa otra vez (o crea una nueva) y vuelve a guardarla.", display(provider))),
+        429 => Ok(()), // Accepted, just busy right now.
+        code => Err(format!("{} respondió con un error ({code}). Intenta de nuevo en un momento.", display(provider))),
+    }
 }
 
 /// How speech becomes text for one dictation.
@@ -496,5 +543,26 @@ mod live_tests {
         let pcm: Vec<u8> = (0..48_000).flat_map(|i| (((i as f32 / 20.0).sin() * 8000.0) as i16).to_le_bytes()).collect();
         let text = transcribe(&engine, &pcm, 48_000, &settings, &CancellationToken::new()).await.unwrap();
         assert_eq!(text, "Hola desde el servidor.");
+    }
+}
+
+#[cfg(test)]
+mod key_tests {
+    use super::{looks_like_key, mask_key};
+    #[test] fn recognizes_each_services_keys() {
+        let groq = format!("gsk_{}", "A1b2".repeat(13));
+        assert!(looks_like_key("groq", &groq));
+        assert!(looks_like_key("groq", &format!("  {groq}\n")));
+        assert!(!looks_like_key("groq", "gsk_short"));
+        assert!(!looks_like_key("groq", "hola, esto es un mensaje cualquiera que copiaste"));
+        assert!(!looks_like_key("openai", &format!("sk-ant-{}", "x".repeat(60))));
+        assert!(looks_like_key("claude", &format!("sk-ant-api03-{}", "x".repeat(60))));
+        assert!(looks_like_key("deepgram", &"ab12".repeat(10)));
+        assert!(!looks_like_key("custom", &groq));
+    }
+    #[test] fn a_masked_key_never_shows_the_secret() {
+        let masked = mask_key(&format!("gsk_{}WXYZ", "s".repeat(48)));
+        assert_eq!(masked, "gsk_…WXYZ");
+        assert!(!masked.contains("sss"));
     }
 }

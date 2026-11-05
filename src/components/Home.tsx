@@ -7,6 +7,7 @@ import { duration, number, stats } from '../lib/useHistory';
 import { fnKeys, type History, type Settings, type VoiceState } from '../lib/types';
 import HistoryList from './HistoryList';
 import SkyDemo from './SkyDemo';
+import { words as platformWords } from '../lib/platform';
 
 interface Props {
   settings: Settings;
@@ -74,7 +75,7 @@ export default function Home({ settings, voice, history, ready, isDemo, onStart,
             : <><button type="button" className="button-primary is-ink" onClick={onConnect}>Conectar un motor de voz</button><button type="button" className="button-secondary" onClick={onStart}>Ver demostración</button></>}
         </div>
         {status && <p className={`home-live ${recording && !words ? 'is-muted' : ''}`} aria-live="polite">{status}</p>}
-        {done && <p className="tour-small">{voice.copied || voice.phase === 'ready' ? 'Copiado. Pégalo con ⌘V donde lo necesites.' : `Pegado en ${voice.context.name}.`}</p>}
+        {done && <p className="tour-small">{voice.copied || voice.phase === 'ready' ? `Copiado. Pégalo con ${platformWords.paste} donde lo necesites.` : `Pegado en ${voice.context.name}.`}</p>}
         {voice.error && voice.phase !== 'idle' && <p className="home-error" role="alert">{voice.error}</p>}
       </div>
       <SkyDemo reducedMotion={settings.reducedMotion} />

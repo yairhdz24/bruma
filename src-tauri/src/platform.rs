@@ -62,12 +62,14 @@ fn parse_app(raw: *mut std::ffi::c_char) -> Option<(String, String, u32)> {
 pub fn start_tracking(app: &tauri::AppHandle) {
     #[cfg(target_os = "macos")]
     { let _ = app.run_on_main_thread(|| unsafe { bruma_track_frontmost_start() }); }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    { let _ = app; win::track_foreground(); }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     let _ = app;
 }
 
 /// True when Bruma's own main window is the one the user is looking at.
-#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+#[cfg_attr(not(any(target_os = "macos", target_os = "windows")), allow(dead_code))]
 fn main_window_focused(app: &tauri::AppHandle) -> bool {
     use tauri::Manager;
     app.get_webview_window("main").is_some_and(|w| w.is_visible().unwrap_or(false) && w.is_focused().unwrap_or(false))
@@ -96,21 +98,23 @@ pub async fn active_target(app: &tauri::AppHandle) -> Result<Target, String> {
 }
 
 #[cfg(target_os = "windows")]
-pub async fn active_target(_app: &tauri::AppHandle) -> Result<Target, String> {
-    tokio::task::spawn_blocking(|| {
-        use windows_sys::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowTextW, GetWindowThreadProcessId};
-        unsafe {
-            let hwnd = GetForegroundWindow();
-            if hwnd.is_null() { return Target::default(); }
-            let mut pid = 0;
-            GetWindowThreadProcessId(hwnd, &mut pid);
-            let mut buffer = [0u16; 512];
-            let len = GetWindowTextW(hwnd, buffer.as_mut_ptr(), buffer.len() as i32);
-            // A window title is used only as a local label and style hint. It is never sent to a model.
-            let name = String::from_utf16_lossy(&buffer[..len.max(0) as usize]);
-            let label = name.rsplit(" - ").next().unwrap_or(&name).trim().to_string();
-            Target { context: AppContext { category: category(&name, ""), name: if label.is_empty() { "Aplicación activa".into() } else { label }, bundle_id: None, can_insert: pid != 0 && pid != std::process::id(), icon_data_url: None }, hwnd: hwnd as isize, pid, before_cursor: None }
-        }
+pub async fn active_target(app: &tauri::AppHandle) -> Result<Target, String> {
+    let main_focused = main_window_focused(app);
+    tokio::task::spawn_blocking(move || {
+        let own = std::process::id();
+        let (mut hwnd, mut pid) = win::foreground();
+        // Started from the floating pill: Bruma came to the front, but the text belongs to the app the user was in.
+        if pid == own && !main_focused { if let Some(previous) = win::last_external() { (hwnd, pid) = previous; } }
+        if hwnd == 0 { return Target::default(); }
+        // The window title and program name are only a local label and style hint. They are never sent to a model.
+        let title = win::window_title(hwnd);
+        let exe = win::process_name(pid).unwrap_or_default();
+        let label = win::friendly_name(&exe).map(str::to_string)
+            .or_else(|| title.rsplit(" - ").next().map(|t| t.trim().to_string()).filter(|t| !t.is_empty()))
+            .unwrap_or_else(|| "Aplicación activa".into());
+        let practice = pid == own && PRACTICE_FIELD.load(std::sync::atomic::Ordering::Acquire);
+        let can_insert = practice || (pid != 0 && pid != own);
+        Target { context: AppContext { category: category(&format!("{title} {label}"), &exe), name: label, bundle_id: None, can_insert, icon_data_url: None }, hwnd, pid, before_cursor: None }
     }).await.map_err(|_| "No se pudo detectar la aplicación.".to_string())
 }
 
@@ -195,61 +199,215 @@ pub async fn insert(app: &tauri::AppHandle, text: &str, cancel: &CancellationTok
     }
 }
 
+/// Pastes like a keyboard would: puts the text on the clipboard, presses Ctrl+V and then puts back
+/// whatever you had copied before (text, images, files: every format Windows lets us read).
 #[cfg(target_os = "windows")]
-fn clipboard_is_empty_or_plain() -> Result<bool, String> {
-    use windows_sys::Win32::{Foundation::{GetLastError, SetLastError}, System::DataExchange::{CloseClipboard, EnumClipboardFormats, OpenClipboard}};
-    unsafe {
-        if OpenClipboard(std::ptr::null_mut()) == 0 { return Err("El portapapeles está ocupado. Intenta de nuevo.".into()); }
-        let mut format = 0;
-        let mut empty = true;
-        let mut compatible = true;
-        loop {
-            SetLastError(0);
-            format = EnumClipboardFormats(format);
-            if format == 0 {
-                let failed = GetLastError() != 0;
-                CloseClipboard();
-                if failed { return Err("No se pudo comprobar el portapapeles.".into()); }
-                break;
-            }
-            empty = false;
-            // CF_TEXT, CF_OEMTEXT, CF_UNICODETEXT and CF_LOCALE only.
-            if ![1, 7, 13, 16].contains(&format) { compatible = false; }
-        }
-        if !compatible { return Err("Tu portapapeles contiene imágenes o archivos; Bruma no lo reemplazó. Copia el texto desde el historial.".into()); }
-        Ok(empty)
-    }
-}
-
-#[cfg(target_os = "windows")]
-pub async fn insert(_app: &tauri::AppHandle, text: &str, cancel: &CancellationToken, _target: Option<&Target>) -> Result<Delivery, String> {
+pub async fn insert(app: &tauri::AppHandle, text: &str, cancel: &CancellationToken, target: Option<&Target>) -> Result<Delivery, String> {
     validate_text(text)?;
     let text = text.to_string();
     let cancel = cancel.clone();
+    let own = std::process::id();
+    let main_focused = main_window_focused(app);
+    let practice = main_focused && PRACTICE_FIELD.load(std::sync::atomic::Ordering::Acquire);
+    let return_to = target.filter(|t| t.hwnd != 0 && t.pid != own).map(|t| t.hwnd)
+        .or_else(|| win::last_external().map(|(hwnd, _)| hwnd));
     tokio::task::spawn_blocking(move || {
-        use windows_sys::Win32::{System::DataExchange::GetClipboardSequenceNumber, UI::{WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId}, Input::KeyboardAndMouse::{SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, VK_CONTROL}}};
         if cancel.is_cancelled() { return Err("Inserción cancelada.".into()); }
         let _guard = CLIPBOARD_LOCK.lock().map_err(|_| "Portapapeles ocupado.".to_string())?;
-        let mut pid = 0;
-        unsafe { GetWindowThreadProcessId(GetForegroundWindow(), &mut pid); }
-        let mut clipboard = arboard::Clipboard::new().map_err(|_| "No se pudo abrir el portapapeles.".to_string())?;
-        if pid == 0 || pid == std::process::id() {
-            clipboard.set_text(text).map_err(|_| "No se pudo copiar el texto.".to_string())?;
+        let (_, mut pid) = win::foreground();
+        // A click on the pill brought Bruma to the front: hand focus back to the app you were writing in.
+        if pid == own && !main_focused {
+            if let Some(hwnd) = return_to { if win::focus(hwnd) { pid = win::foreground().1; } }
+        }
+        if pid == 0 || (pid == own && !practice) {
+            arboard::Clipboard::new().and_then(|mut c| c.set_text(text)).map_err(|_| "No se pudo copiar el texto.".to_string())?;
             return Ok(Delivery::Copied);
         }
-        let was_empty = clipboard_is_empty_or_plain()?;
-        let previous = if was_empty { None } else { clipboard.get_text().ok() };
-        clipboard.set_text(text.clone()).map_err(|_| "No se pudo preparar el texto para insertar.".to_string())?;
-        let sequence = unsafe { GetClipboardSequenceNumber() };
-        let key = |vk, flags| INPUT { r#type: INPUT_KEYBOARD, Anonymous: INPUT_0 { ki: KEYBDINPUT { wVk: vk, wScan: 0, dwFlags: flags, time: 0, dwExtraInfo: 0 } } };
-        let inputs = [key(VK_CONTROL, 0), key(0x56, 0), key(0x56, KEYEVENTF_KEYUP), key(VK_CONTROL, KEYEVENTF_KEYUP)];
-        let sent = unsafe { SendInput(inputs.len() as u32, inputs.as_ptr(), std::mem::size_of::<INPUT>() as i32) } == inputs.len() as u32;
+        let saved = win::clipboard_snapshot();
+        arboard::Clipboard::new().and_then(|mut c| c.set_text(text.clone())).map_err(|_| "No se pudo preparar el texto para insertar.".to_string())?;
+        let sequence = win::clipboard_sequence();
+        // The keys of your shortcut may still be down (Shift or Alt + Ctrl+V would do something else).
+        win::wait_for_modifiers_release(Duration::from_millis(700));
+        if cancel.is_cancelled() { return Err("Inserción cancelada.".into()); }
+        let sent = win::press_paste();
         std::thread::sleep(Duration::from_millis(450));
-        if unsafe { GetClipboardSequenceNumber() } == sequence {
-            if let Some(previous) = previous { let _ = clipboard.set_text(previous); } else if was_empty { let _ = clipboard.clear(); }
-        }
-        if sent { Ok(Delivery::Pasted) } else { Err("Windows no pudo pegar el texto. Las ventanas de administrador pueden bloquearlo.".into()) }
+        // Only put your previous clipboard back if nothing else was copied meanwhile.
+        if win::clipboard_sequence() == sequence { win::clipboard_restore(saved); }
+        if sent { Ok(Delivery::Pasted) } else { Err("Windows no dejó pegar el texto (las ventanas de administrador lo bloquean). Tu texto está en el historial.".into()) }
     }).await.map_err(|_| "No se pudo insertar el texto.".to_string())?
+}
+
+#[cfg(target_os = "windows")]
+mod win {
+    use std::sync::atomic::{AtomicIsize, AtomicU32, Ordering};
+    use std::time::{Duration, Instant};
+    use windows_sys::Win32::{
+        Foundation::{CloseHandle, GlobalFree, HWND},
+        System::{DataExchange::*, Memory::*, Threading::{OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION}},
+        UI::{Input::KeyboardAndMouse::*, WindowsAndMessaging::*},
+    };
+
+    static LAST_HWND: AtomicIsize = AtomicIsize::new(0);
+    static LAST_PID: AtomicU32 = AtomicU32::new(0);
+
+    pub fn foreground() -> (isize, u32) {
+        unsafe {
+            let hwnd = GetForegroundWindow();
+            if hwnd.is_null() { return (0, 0); }
+            let mut pid = 0;
+            GetWindowThreadProcessId(hwnd, &mut pid);
+            (hwnd as isize, pid)
+        }
+    }
+
+    /// Remembers the last window that was not Bruma, so a click on the pill still knows where to paste.
+    pub fn track_foreground() {
+        let _ = std::thread::Builder::new().name("bruma-foreground".into()).spawn(|| {
+            let own = std::process::id();
+            loop {
+                let (hwnd, pid) = foreground();
+                if hwnd != 0 && pid != 0 && pid != own {
+                    LAST_HWND.store(hwnd, Ordering::Release);
+                    LAST_PID.store(pid, Ordering::Release);
+                }
+                std::thread::sleep(Duration::from_millis(250));
+            }
+        });
+    }
+
+    pub fn last_external() -> Option<(isize, u32)> {
+        let hwnd = LAST_HWND.load(Ordering::Acquire);
+        let alive = hwnd != 0 && unsafe { IsWindow(hwnd as HWND) } != 0;
+        alive.then(|| (hwnd, LAST_PID.load(Ordering::Acquire)))
+    }
+
+    pub fn focus(hwnd: isize) -> bool {
+        unsafe {
+            let hwnd = hwnd as HWND;
+            if IsWindow(hwnd) == 0 { return false; }
+            if IsIconic(hwnd) != 0 { ShowWindow(hwnd, SW_RESTORE); }
+            let ok = SetForegroundWindow(hwnd) != 0;
+            std::thread::sleep(Duration::from_millis(120));
+            ok && GetForegroundWindow() == hwnd
+        }
+    }
+
+    pub fn window_title(hwnd: isize) -> String {
+        let mut buffer = [0u16; 512];
+        let len = unsafe { GetWindowTextW(hwnd as HWND, buffer.as_mut_ptr(), buffer.len() as i32) };
+        String::from_utf16_lossy(&buffer[..len.max(0) as usize])
+    }
+
+    /// The program's file name without ".exe", in lowercase (for example "whatsapp" or "code").
+    pub fn process_name(pid: u32) -> Option<String> {
+        if pid == 0 { return None; }
+        unsafe {
+            let process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid);
+            if process.is_null() { return None; }
+            let mut buffer = [0u16; 1024];
+            let mut len = buffer.len() as u32;
+            let ok = QueryFullProcessImageNameW(process, PROCESS_NAME_WIN32, buffer.as_mut_ptr(), &mut len) != 0;
+            CloseHandle(process);
+            if !ok { return None; }
+            let path = String::from_utf16_lossy(&buffer[..len as usize]);
+            let file = path.rsplit(['\\', '/']).next().unwrap_or(&path).to_lowercase();
+            Some(file.strip_suffix(".exe").unwrap_or(&file).to_string())
+        }
+    }
+
+    /// Names people know, for the programs they dictate into most.
+    pub fn friendly_name(exe: &str) -> Option<&'static str> {
+        Some(match exe {
+            "winword" => "Word", "excel" => "Excel", "powerpnt" => "PowerPoint", "outlook" | "olk" => "Outlook", "onenote" => "OneNote",
+            "ms-teams" | "teams" => "Teams", "code" => "VS Code", "cursor" => "Cursor", "windsurf" => "Windsurf", "notepad" => "Bloc de notas",
+            "chrome" => "Chrome", "msedge" => "Edge", "firefox" => "Firefox", "brave" => "Brave", "opera" => "Opera", "arc" => "Arc",
+            "whatsapp" | "whatsapp.root" => "WhatsApp", "telegram" => "Telegram", "slack" => "Slack", "discord" => "Discord", "signal" => "Signal",
+            "notion" => "Notion", "obsidian" => "Obsidian", "claude" => "Claude", "chatgpt" => "ChatGPT",
+            "windowsterminal" => "Terminal", "powershell" | "pwsh" => "PowerShell", "cmd" => "Símbolo del sistema", "explorer" => "Explorador",
+            _ => return None,
+        })
+    }
+
+    pub fn clipboard_sequence() -> u32 { unsafe { GetClipboardSequenceNumber() } }
+
+    fn key_down(vk: u16) -> bool { (unsafe { GetAsyncKeyState(vk as i32) } as u16 & 0x8000) != 0 }
+
+    const MODIFIERS: [u16; 5] = [VK_SHIFT, VK_CONTROL, VK_MENU, VK_LWIN, VK_RWIN];
+
+    /// Waits a moment for you to let go of your shortcut, then lifts any key still held.
+    pub fn wait_for_modifiers_release(limit: Duration) {
+        let start = Instant::now();
+        while MODIFIERS.iter().any(|vk| key_down(*vk)) && start.elapsed() < limit { std::thread::sleep(Duration::from_millis(15)); }
+        let held: Vec<INPUT> = MODIFIERS.iter().filter(|vk| key_down(**vk)).map(|vk| key(*vk, KEYEVENTF_KEYUP)).collect();
+        if !held.is_empty() { unsafe { SendInput(held.len() as u32, held.as_ptr(), std::mem::size_of::<INPUT>() as i32); } }
+    }
+
+    fn key(vk: u16, flags: KEYBD_EVENT_FLAGS) -> INPUT {
+        INPUT { r#type: INPUT_KEYBOARD, Anonymous: INPUT_0 { ki: KEYBDINPUT { wVk: vk, wScan: 0, dwFlags: flags, time: 0, dwExtraInfo: 0 } } }
+    }
+
+    pub fn press_paste() -> bool {
+        let inputs = [key(VK_CONTROL, 0), key(0x56, 0), key(0x56, KEYEVENTF_KEYUP), key(VK_CONTROL, KEYEVENTF_KEYUP)];
+        unsafe { SendInput(inputs.len() as u32, inputs.as_ptr(), std::mem::size_of::<INPUT>() as i32) == inputs.len() as u32 }
+    }
+
+    fn open_clipboard() -> bool {
+        // Another app may hold the clipboard for a moment.
+        for _ in 0..10 { if unsafe { OpenClipboard(std::ptr::null_mut()) } != 0 { return true; } std::thread::sleep(Duration::from_millis(20)); }
+        false
+    }
+
+    /// Formats whose data is not plain memory (bitmaps, metafiles, palettes, owner-drawn, private GDI).
+    /// Windows recreates bitmaps from the DIB copy, so nothing visible is lost.
+    fn copyable(format: u32) -> bool {
+        !matches!(format, 2 | 3 | 9 | 14 | 0x80 | 0x82 | 0x83 | 0x8E) && !(0x300..=0x3FF).contains(&format)
+    }
+
+    pub struct Snapshot(Vec<(u32, Vec<u8>)>);
+
+    /// A copy of everything on the clipboard right now (up to 64 MB).
+    pub fn clipboard_snapshot() -> Snapshot {
+        let mut items = Vec::new();
+        if !open_clipboard() { return Snapshot(items); }
+        let mut total = 0usize;
+        let mut format = 0;
+        unsafe {
+            loop {
+                format = EnumClipboardFormats(format);
+                if format == 0 { break; }
+                if !copyable(format) { continue; }
+                let handle = GetClipboardData(format);
+                if handle.is_null() { continue; }
+                let size = GlobalSize(handle);
+                if size == 0 || total + size > 64 * 1024 * 1024 { continue; }
+                let data = GlobalLock(handle) as *const u8;
+                if data.is_null() { continue; }
+                items.push((format, std::slice::from_raw_parts(data, size).to_vec()));
+                total += size;
+                GlobalUnlock(handle);
+            }
+            CloseClipboard();
+        }
+        Snapshot(items)
+    }
+
+    pub fn clipboard_restore(snapshot: Snapshot) {
+        if !open_clipboard() { return; }
+        unsafe {
+            EmptyClipboard();
+            for (format, bytes) in snapshot.0 {
+                let memory = GlobalAlloc(GMEM_MOVEABLE, bytes.len());
+                if memory.is_null() { continue; }
+                let target = GlobalLock(memory) as *mut u8;
+                if target.is_null() { GlobalFree(memory); continue; }
+                std::ptr::copy_nonoverlapping(bytes.as_ptr(), target, bytes.len());
+                GlobalUnlock(memory);
+                // Windows owns the memory once it accepts it.
+                if SetClipboardData(format, memory).is_null() { GlobalFree(memory); }
+            }
+            CloseClipboard();
+        }
+    }
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]

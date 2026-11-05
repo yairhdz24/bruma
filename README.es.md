@@ -15,7 +15,7 @@ Teclado por voz gratuito y de código abierto para tu Mac. Toca <kbd>fn</kbd>, h
   <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-MIT-8E8E93?style=flat-square" alt="MIT" /></a>
   <br />
   <a href="#descargar"><img src="https://img.shields.io/badge/macOS-Apple%20Silicon-111111?style=flat-square&logo=apple&logoColor=white" alt="macOS" /></a>
-  <a href="#descargar"><img src="https://img.shields.io/badge/Windows-beta-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" /></a>
+  <a href="#descargar"><img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" /></a>
   <img src="https://img.shields.io/badge/Tauri%202-Rust%20%2B%20React-24C8DB?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-bienvenidos-FF2D55?style=flat-square" alt="PRs welcome" /></a>
   <a href="https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/yairhdz24/bruma/good%20first%20issue?style=flat-square&color=AF52DE&label=good%20first%20issues&cacheSeconds=600" alt="Good first issues" /></a>
@@ -66,7 +66,7 @@ Teclado por voz gratuito y de código abierto para tu Mac. Toca <kbd>fn</kbd>, h
 | | |
 | --- | --- |
 | 🍎 **macOS** · Apple Silicon (M1–M4), macOS 12 o superior | [**Descargar Bruma para Mac (.dmg)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-macOS-Apple-Silicon.dmg) |
-| 🪟 **Windows** 10/11 · 64 bits (beta) | [**Descargar Bruma para Windows (.exe)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe) |
+| 🪟 **Windows** 10/11 · 64 bits | [**Descargar Bruma para Windows (.exe)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe) |
 
 Todas las versiones y sus novedades: [Releases](https://github.com/yairhdz24/bruma/releases).
 
@@ -95,15 +95,37 @@ Descarga la última versión y la firma con un certificado creado en tu propia M
 
 ### Instalar en Windows
 
+**La forma más rápida:** abre **PowerShell** (tecla Windows → escribe *PowerShell* → Enter) y pega esta línea:
+
+```powershell
+irm https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/install-windows.ps1 | iex
+```
+
+Descarga la última versión, la instala solo para tu usuario (sin permisos de administrador y sin el aviso de SmartScreen), abre Bruma y te ofrece conseguir tu clave gratis de Groq en el momento. Ejecútala de nuevo para actualizar.
+
+**O con el instalador:**
+
 1. Ejecuta `Bruma-Windows-x64-setup.exe`. Si aparece SmartScreen, haz clic en **Más información → Ejecutar de todas formas** (la app todavía no está firmada).
 2. Permite el acceso al micrófono si Windows lo pide (**Configuración → Privacidad → Micrófono**).
-3. Usa un atajo como <kbd>Ctrl</kbd>+<kbd>Espacio</kbd> para dictar (la tecla fn solo existe en macOS).
+3. Usa un atajo como <kbd>Ctrl</kbd>+<kbd>Espacio</kbd> para dictar (la tecla fn solo existe en macOS). Si choca con otra app, cámbialo en **Ajustes → Atajo**.
+
+Bruma vive en la bandeja del sistema, junto al reloj: clic para abrirla, clic derecho para el menú. Pega en cualquier app con <kbd>Ctrl</kbd>+<kbd>V</kbd> por ti y después te devuelve lo que tenías copiado (texto, imágenes o archivos).
 
 ## Consigue tu clave gratis
 
 Bruma no tiene servidor, así que usa **tu propia clave**, que nunca sale de tu computadora. Para empezar solo necesitas **una**, y la de Groq es gratis.
 
 ### Groq: gratis (recomendada)
+
+**En la app (un clic):** en la bienvenida o en **Conexiones → Groq**, toca **Abrir Groq**, crea la clave y toca **Copy**. Al volver, Bruma la detecta sola: toca **Usar esta clave** y Bruma comprueba con Groq que funciona.
+
+**En Windows, desde PowerShell:** una línea abre Groq, detecta la clave cuando la copias, la verifica y la guarda donde Bruma la lee:
+
+```powershell
+irm https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/groq-key.ps1 | iex
+```
+
+**A mano:**
 
 1. Entra a **[console.groq.com](https://console.groq.com)** e inicia sesión con Google, GitHub o correo. No pide tarjeta.
 2. En el menú, abre **API Keys** → **Create API Key** y ponle de nombre `Bruma`.

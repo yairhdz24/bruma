@@ -15,7 +15,7 @@ Free, open-source voice keyboard for your Mac. Tap <kbd>fn</kbd>, speak, and cle
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-8E8E93?style=flat-square" alt="MIT" /></a>
   <br />
   <a href="#download"><img src="https://img.shields.io/badge/macOS-Apple%20Silicon-111111?style=flat-square&logo=apple&logoColor=white" alt="macOS" /></a>
-  <a href="#download"><img src="https://img.shields.io/badge/Windows-beta-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" /></a>
+  <a href="#download"><img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" /></a>
   <img src="https://img.shields.io/badge/Tauri%202-Rust%20%2B%20React-24C8DB?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-FF2D55?style=flat-square" alt="PRs welcome" /></a>
   <a href="https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/yairhdz24/bruma/good%20first%20issue?style=flat-square&color=AF52DE&label=good%20first%20issues&cacheSeconds=600" alt="Good first issues" /></a>
@@ -66,7 +66,7 @@ Free, open-source voice keyboard for your Mac. Tap <kbd>fn</kbd>, speak, and cle
 | | |
 | --- | --- |
 | 🍎 **macOS** · Apple Silicon (M1–M4), macOS 12+ | [**Download Bruma for Mac (.dmg)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-macOS-Apple-Silicon.dmg) |
-| 🪟 **Windows** 10/11 · 64-bit (beta) | [**Download Bruma for Windows (.exe)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe) |
+| 🪟 **Windows** 10/11 · 64-bit | [**Download Bruma for Windows (.exe)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe) |
 
 All versions and release notes: [Releases](https://github.com/yairhdz24/bruma/releases).
 
@@ -95,15 +95,37 @@ It downloads the latest release and signs it with a certificate created on your 
 
 ### Install on Windows
 
+**Fastest:** open **PowerShell** (Windows key → type *PowerShell* → Enter) and paste:
+
+```powershell
+irm https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/install-windows.ps1 | iex
+```
+
+It downloads the latest release, installs it for your user only (no admin rights, no SmartScreen prompt), opens Bruma and offers to get your free Groq key right away. Run it again to update.
+
+**Or with the installer:**
+
 1. Run `Bruma-Windows-x64-setup.exe`. If SmartScreen appears, click **More info → Run anyway** (the app isn't code-signed yet).
 2. Allow microphone access if Windows asks (**Settings → Privacy → Microphone**).
-3. Use a shortcut such as <kbd>Ctrl</kbd>+<kbd>Space</kbd> to dictate (the fn key is macOS-only).
+3. Use a shortcut such as <kbd>Ctrl</kbd>+<kbd>Space</kbd> to dictate (the fn key is macOS-only). If it clashes with another app, change it in **Ajustes → Atajo**.
+
+Bruma lives in the system tray next to the clock: click to open it, right-click for the menu. It pastes into any app with <kbd>Ctrl</kbd>+<kbd>V</kbd> for you and then puts back whatever you had copied (text, images or files).
 
 ## Get your free API key
 
 Bruma doesn't have a server, so it uses **your own key**. The keys never leave your computer. You only need **one** to start: Groq is free.
 
 ### Groq: free (recommended)
+
+**In the app (one click):** in the welcome tour or in **Conexiones → Groq**, tap **Abrir Groq**, create the key and tap **Copy**. When you come back, Bruma notices it: tap **Usar esta clave** and Bruma checks with Groq that it works.
+
+**On Windows, from PowerShell:** one line opens Groq, notices the key when you copy it, verifies it and saves it where Bruma reads it:
+
+```powershell
+irm https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/groq-key.ps1 | iex
+```
+
+**By hand:**
 
 1. Go to **[console.groq.com](https://console.groq.com)** and sign in with Google, GitHub or email. No credit card.
 2. In the menu, open **API Keys** → **Create API Key**. Name it `Bruma`.

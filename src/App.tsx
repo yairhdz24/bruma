@@ -4,6 +4,7 @@ import { AUTHOR, REPO_URL } from './lib/project';
 import { command, deleteApiKey, errorMessage, getProviderStatus, getSettings, isNative, saveApiKey, saveSettings } from './lib/bridge';
 import { defaultSettings, emptyProviders, engineNames, engineReady, fnKeys, type KeyProvider, type ProviderStatus, type Settings } from './lib/types';
 import { ONBOARDING_VERSION } from './lib/onboarding';
+import { isMac, isWindows } from './lib/platform';
 import { shortcutKeycaps } from './lib/shortcut';
 import { useAppearance } from './lib/useAppearance';
 import { useHistory } from './lib/useHistory';
@@ -53,6 +54,7 @@ function MainApp() {
       .catch(error => { if (!disposed) { showNotice(errorMessage(error)); setLoaded(true); } });
     void getProviderStatus().then(status => { if (!disposed) setProviders(status); }).catch(() => {});
     if (isNative) document.documentElement.classList.add('native-app');
+    document.documentElement.classList.add(isMac ? 'platform-mac' : isWindows ? 'platform-windows' : 'platform-other');
     return () => { disposed = true; };
   }, [showNotice]);
 
@@ -60,7 +62,14 @@ function MainApp() {
   const saveKey = useCallback(async (provider: KeyProvider, key: string) => { await saveApiKey(provider, key); setProviders(await getProviderStatus()); }, []);
   const deleteKey = useCallback(async (provider: KeyProvider) => { await deleteApiKey(provider); setProviders(await getProviderStatus()); }, []);
   const ready = engineReady(settings, providers);
-  const connections = { settings, providers, onSave: save, onSaveKey: saveKey, onDeleteKey: deleteKey, onNotice: showNotice };
+  const refreshProviders = useCallback(async () => { setProviders(await getProviderStatus()); }, []);
+  // Back to Bruma: a key may have been saved meanwhile (for example with the terminal helper).
+  useEffect(() => {
+    const onFocus = () => { void refreshProviders().catch(() => {}); };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [refreshProviders]);
+  const connections = { settings, providers, onSave: save, onSaveKey: saveKey, onDeleteKey: deleteKey, onNotice: showNotice, onProvidersChanged: refreshProviders };
   const keys = shortcutKeycaps(settings.shortcut, mac ? 'mac' : 'windows');
 
   useEffect(() => {

@@ -1,8 +1,10 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { ArrowRightIcon, CheckCircleIcon, CursorTextIcon, HardDrivesIcon, MicrophoneIcon, TrashIcon } from '@phosphor-icons/react';
 import { command, errorMessage, isNative } from '../lib/bridge';
+import GroqQuickKey from './GroqQuickKey';
 import ModelPicker from './ModelPicker';
 import type { KeyProvider, PolishProvider, ProviderStatus, Settings, SttProvider } from '../lib/types';
+import { words as platformWords } from '../lib/platform';
 
 export interface ConnectionsProps {
   settings: Settings;
@@ -11,6 +13,8 @@ export interface ConnectionsProps {
   onSaveKey: (provider: KeyProvider, key: string) => Promise<void>;
   onDeleteKey: (provider: KeyProvider) => Promise<void>;
   onNotice: (text: string) => void;
+  /** Re-reads which keys are saved (after a key is saved without typing it here). */
+  onProvidersChanged?: () => Promise<void>;
   /** Onboarding shows only the speech engine. */
   engineOnly?: boolean;
 }
@@ -35,9 +39,14 @@ function KeyForm({ provider, label, stored, optional = false, onSaveKey, onDelet
     event.preventDefault();
     if (!key.trim()) { setError('Pega la clave para guardarla.'); return; }
     setBusy(true); setError('');
-    try { await onSaveKey(provider, key.trim()); setKey(''); onNotice(`Clave de ${label} guardada en el llavero.`); }
-    catch (cause) { setError(errorMessage(cause)); }
-    finally { setBusy(false); }
+    try { await onSaveKey(provider, key.trim()); setKey(''); }
+    catch (cause) { setError(errorMessage(cause)); setBusy(false); return; }
+    // Check right away that the service accepts it, so a typo shows up now and not mid-dictation.
+    if (provider !== 'custom') {
+      try { await command('verify_api_key', { provider }); onNotice(`Clave de ${label} guardada y verificada.`); }
+      catch (cause) { setError(`Se guardó, pero: ${errorMessage(cause)}`); }
+    } else onNotice(`Clave de ${label} guardada.`);
+    setBusy(false);
   }
   async function remove() {
     setBusy(true);
@@ -65,7 +74,7 @@ function Choice({ name, checked, onSelect, children, title, status }: { name: st
 
 const openExternal = (url: string) => { if (isNative) void command('open_url', { url }).catch(() => {}); else window.open(url, '_blank', 'noopener'); };
 
-export default function Connections({ settings, providers, onSave, onSaveKey, onDeleteKey, onNotice, engineOnly = false }: ConnectionsProps) {
+export default function Connections({ settings, providers, onSave, onSaveKey, onDeleteKey, onNotice, onProvidersChanged, engineOnly = false }: ConnectionsProps) {
   const [baseUrl, setBaseUrl] = useState(settings.sttBaseUrl);
   const [error, setError] = useState('');
   useEffect(() => { setBaseUrl(settings.sttBaseUrl); }, [settings.sttBaseUrl]);
@@ -99,6 +108,7 @@ export default function Connections({ settings, providers, onSave, onSaveKey, on
           <p className="form-help">Bruma envía el audio a <code>{'{dirección}'}/audio/transcriptions</code>. Usa https si el servidor está fuera de tu red. <button type="button" className="link-button" onClick={() => openExternal(engine.keyUrl!)}>Cómo montar Speaches en un VPS</button></p>
           <KeyForm provider="custom" label="tu servidor" stored={providers.custom} optional {...keyProps} />
         </> : <>
+          {engine.id === 'groq' && !stored && !engineOnly && <GroqQuickKey compact onSaved={onProvidersChanged ?? (() => {})} />}
           <KeyForm provider={engine.id as KeyProvider} label={engine.name} stored={providers[engine.id as KeyProvider]} {...keyProps} />
           <ModelPicker provider={engine.id as 'groq' | 'openai' | 'deepgram'} purpose="stt" value={settings.sttModel} fallback={engine.id === 'groq' ? 'whisper-large-v3-turbo' : engine.id === 'openai' ? 'gpt-4o-mini-transcribe' : 'nova-3'} refresh={providers[engine.id as KeyProvider]} onChange={value => void update({ sttModel: value }, 'Modelo guardado.')} />
           {engine.keyUrl && <button type="button" className="link-button" onClick={() => openExternal(engine.keyUrl!)}>Crear una clave en {new URL(engine.keyUrl).hostname}</button>}
@@ -113,7 +123,7 @@ export default function Connections({ settings, providers, onSave, onSaveKey, on
   const engineReadyNow = engine.id === 'custom' ? Boolean(settings.sttBaseUrl) : providers[engine.id];
   const polishLogo = polishActive === 'Claude' ? '/brands/claude.svg' : polishActive === 'Groq' ? '/brands/groq.svg' : undefined;
   return <div className="page">
-    <header className="page-header"><h1>Conexiones</h1><p>Elige quién convierte tu voz en texto y quién lo deja impecable. Tus claves viven en el llavero de tu Mac y el audio nunca se guarda.</p></header>
+    <header className="page-header"><h1>Conexiones</h1><p>Elige quién convierte tu voz en texto y quién lo deja impecable. Tus claves viven solo {platformWords.keyStore} y el audio nunca se guarda.</p></header>
     <ol className="pipeline" aria-label="Cómo viaja tu voz">
       <li><span className="pipeline-icon"><MicrophoneIcon size={18} weight="fill" aria-hidden="true" /></span><span><b>Tu voz</b><small>En memoria</small></span></li>
       <li aria-hidden="true" className="pipeline-arrow"><ArrowRightIcon size={14} /></li>

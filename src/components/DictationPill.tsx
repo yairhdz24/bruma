@@ -3,6 +3,7 @@ import { ArrowElbowDownLeftIcon, ArrowUpRightIcon, BookOpenTextIcon, CheckIcon, 
 import { useBrandColor } from '../lib/appColor';
 import type { AppContext, Phase } from '../lib/types';
 import './pill.css';
+import { words as platformWords } from '../lib/platform';
 
 type Action = () => void | Promise<void>;
 export type PillMode = 'idle' | 'hover' | 'listening' | 'paused' | 'working' | 'done' | 'review' | 'error' | 'learn' | 'learned';
@@ -150,7 +151,7 @@ function DictationPill({ mode, context, levelRef, shortcut, fnKeys = null, hold 
 
       <div className="face face-working" aria-hidden={mode !== 'working'}><span className="dots" aria-hidden="true"><i /><i /><i /></span></div>
 
-      <div className="face face-done" aria-hidden={mode !== 'done'}><CheckIcon size={13} weight="bold" aria-hidden="true" /><span>{copied ? 'Copiado · ⌘V para pegar' : 'Listo'}</span></div>
+      <div className="face face-done" aria-hidden={mode !== 'done'}><CheckIcon size={13} weight="bold" aria-hidden="true" /><span>{copied ? `Copiado · ${platformWords.paste} para pegar` : 'Listo'}</span></div>
 
       <div className="face face-review" aria-hidden={mode !== 'review'}>
         <span className="review-text">{result}</span>

@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
-import { ArrowUpRightIcon, GlobeIcon, InfoIcon } from '@phosphor-icons/react';
+import { GlobeIcon, InfoIcon } from '@phosphor-icons/react';
 import { command, errorMessage, isNative } from '../lib/bridge';
 import { ONBOARDING_VERSION, openPermissionSettings } from '../lib/onboarding';
 import { shortcutKeycaps } from '../lib/shortcut';
 import { engineReady, fnKeys, type Settings, type VoiceState } from '../lib/types';
 import Connections, { type ConnectionsProps } from './Connections';
+import GroqQuickKey from './GroqQuickKey';
 import PermissionSetup from './PermissionSetup';
 import SkyDemo from './SkyDemo';
+import { isWindows, words as platformWords } from '../lib/platform';
 
 interface Props extends ConnectionsProps { settings: Settings; voice: VoiceState; onDone: () => void }
 type Step = 'welcome' | 'permissions' | 'engine' | 'mode' | 'key' | 'messages' | 'mail' | 'speed' | 'ready';
@@ -56,25 +58,6 @@ function Practice({ kind, settings, voice, onWords }: { kind: 'messages' | 'mail
       </div>
     </div>
   </div>;
-}
-
-const GROQ_KEYS = 'https://console.groq.com/keys';
-const openGroq = () => { if (isNative) void command('open_url', { url: GROQ_KEYS }).catch(() => {}); else window.open(GROQ_KEYS, '_blank', 'noopener'); };
-
-/** First-timers rarely know what an API key is: three plain steps to a free one. */
-function KeyGuide() {
-  return <section className="key-guide" aria-labelledby="key-guide-title">
-    <div className="key-guide-head">
-      <h2 id="key-guide-title">Consigue tu clave gratis en un minuto</h2>
-      <span className="key-guide-free">Gratis · sin tarjeta</span>
-    </div>
-    <ol>
-      <li><span><b>Abre Groq</b> y entra con Google o con tu correo.</span><button type="button" className="button-primary key-guide-open" onClick={openGroq}>Abrir Groq<ArrowUpRightIcon size={13} weight="bold" aria-hidden="true" /></button></li>
-      <li><span>Toca <b>Create API Key</b>, ponle de nombre <i>Bruma</i> y copia la clave (empieza con <code>gsk_</code>).</span></li>
-      <li><span>Vuelve aquí, pégala en <b>Clave de Groq</b> y toca <b>Guardar</b>.</span></li>
-    </ol>
-    <p className="key-guide-note">La clave se guarda solo en tu computadora. El plan gratis de Groq alcanza para horas de dictado al día.</p>
-  </section>;
 }
 
 export default function Onboarding({ settings, voice, onDone, ...connections }: Props) {
@@ -131,15 +114,15 @@ export default function Onboarding({ settings, voice, onDone, ...connections }: 
         {step === 'welcome' && <div className="tour-split">
           <div>
             <p className="tour-hero">Habla.<br /><em>Bruma</em> escribe.</p>
-            <p className="tour-lead">Dicta en cualquier app de tu Mac y el texto aparece donde está tu cursor, con puntuación, acentos y sin muletillas. Hasta cuatro veces más rápido que teclear.</p>
+            <p className="tour-lead">Dicta en cualquier app de {platformWords.computer} y el texto aparece donde está tu cursor, con puntuación, acentos y sin muletillas. Hasta cuatro veces más rápido que teclear.</p>
             <div className="tour-actions"><button type="button" className="button-primary is-ink" onClick={next}>Empezar</button><span className="tour-credit">Creada por <b>Yair Hernández</b></span></div>
           </div>
           <SkyDemo reducedMotion={settings.reducedMotion} />
         </div>}
 
         {step === 'permissions' && <div className="tour-center">
-          <h1>Dos permisos y listo</h1>
-          <p className="tour-lead">El micrófono solo se enciende cuando tú empiezas a dictar. Accesibilidad le permite a Bruma pegar el texto y reconocer la tecla fn.</p>
+          <h1>{isWindows ? 'Un permiso y listo' : 'Dos permisos y listo'}</h1>
+          <p className="tour-lead">El micrófono solo se enciende cuando tú empiezas a dictar.{isWindows ? ' En Windows no hace falta nada más: Bruma pega con Ctrl+V como lo harías tú.' : ' Accesibilidad le permite a Bruma pegar el texto y reconocer la tecla fn.'}</p>
           <div className="tour-panel"><PermissionSetup /></div>
           <div className="tour-actions"><button type="button" className="button-primary" onClick={next}>Continuar</button></div>
         </div>}
@@ -147,7 +130,7 @@ export default function Onboarding({ settings, voice, onDone, ...connections }: 
         {step === 'engine' && <div className="tour-center">
           <h1>¿Quién escucha?</h1>
           <p className="tour-lead">Un motor convierte tu voz en texto con tu propia clave, sin intermediarios. Deepgram muestra las palabras mientras hablas; Groq es gratis para uso personal.</p>
-          {!ready && settings.sttProvider === 'groq' && <KeyGuide />}
+          {!ready && settings.sttProvider === 'groq' && <GroqQuickKey onSaved={connections.onProvidersChanged ?? (() => {})} />}
           <div className="tour-panel"><Connections {...connections} settings={settings} engineOnly /></div>
           <div className="tour-actions"><button type="button" className="button-primary" disabled={!ready} onClick={next}>{ready ? 'Continuar' : 'Guarda una clave para continuar'}</button>{!ready && <button type="button" className="button-secondary" onClick={next}>Hacerlo después</button>}</div>
         </div>}
@@ -197,7 +180,7 @@ export default function Onboarding({ settings, voice, onDone, ...connections }: 
         {step === 'ready' && <div className="tour-split">
           <div>
             <h1>Todo listo{settings.profileName ? `, ${settings.profileName.split(' ')[0]}` : ''}</h1>
-            <p className="tour-lead">La píldora sobre el Dock te dirá cuándo Bruma te escucha y en qué app vas a escribir.</p>
+            <p className="tour-lead">La píldora {platformWords.pillPlace} te dirá cuándo Bruma te escucha y en qué app vas a escribir.</p>
             <div className="home-keys">{startKeys}{keys.map((key, i) => <kbd key={i} className="keycap">{key}</kbd>)}<span>para dictar</span><kbd className="keycap">esc</kbd><span>para cancelar</span></div>
             <div className="tour-actions"><button type="button" className="button-primary is-ink" disabled={busy} onClick={() => void finish()}>Empezar a dictar</button></div>
             {error && <p className="form-error" role="alert">{error}</p>}

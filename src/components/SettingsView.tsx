@@ -7,6 +7,7 @@ const openExternal = (url: string) => { if (isNative) void command('open_url', {
 import type { Settings } from '../lib/types';
 import ShortcutSetup from './ShortcutSetup';
 import PermissionSetup from './PermissionSetup';
+import { isMac, words as platformWords } from '../lib/platform';
 
 interface Props { settings: Settings; onSave: (settings: Settings) => Promise<void>; onNotice: (text: string) => void; onOpenGuide: () => void }
 
@@ -51,7 +52,7 @@ export default function SettingsView({ settings, onSave, onNotice, onOpenGuide }
         </Row>
       </div>}
       <div className="panel"><ShortcutSetup settings={settings} onSave={onSave} onNotice={onNotice} compact /></div>
-      <p className="section-intro">La tecla fn no se puede grabar como atajo normal: elígela arriba (sola o con Espacio). Si ⌃ Espacio cambia la fuente de entrada de tu teclado, desactívalo en Ajustes del Sistema → Teclado → Funciones rápidas, o elige otra combinación aquí.</p>
+      <p className="section-intro">{isMac ? 'La tecla fn no se puede grabar como atajo normal: elígela arriba (sola o con Espacio). Si ⌃ Espacio cambia la fuente de entrada de tu teclado, desactívalo en Ajustes del Sistema → Teclado → Funciones rápidas, o elige otra combinación aquí.' : 'Si Ctrl+Espacio choca con otra app (por ejemplo, el autocompletado de tu editor o el cambio de idioma del teclado), elige otra combinación, como Ctrl+Alt+Espacio.'}</p>
     </section>
 
     <section className="section" aria-labelledby="s-dictation"><div className="section-head"><h2 id="s-dictation">Dictado</h2></div>
@@ -59,7 +60,7 @@ export default function SettingsView({ settings, onSave, onNotice, onOpenGuide }
         <Toggle label="Revisar antes de pegar" description="Muestra el texto en la píldora y espera a que lo confirmes. Apagado, se pega solo, como un teclado." checked={settings.confirmBeforeInsert} onChange={v => void set('confirmBeforeInsert', v)} />
         <Toggle label="Terminar al quedarte en silencio" description="Si haces una pausa larga, Bruma termina y pega sin que vuelvas a presionar el atajo." checked={settings.autoFinish} onChange={v => void set('autoFinish', v)} />
         {settings.autoFinish && <Row label="Duración de la pausa" description={`${(settings.pauseMs / 1000).toFixed(1)} segundos de silencio`}><input type="range" className="range" min={1000} max={5000} step={100} value={settings.pauseMs} aria-label="Duración de la pausa" onChange={e => void set('pauseMs', Number(e.target.value))} /></Row>}
-        <Toggle label="Píldora flotante siempre visible" description="Una línea discreta sobre el Dock. Pasa el puntero para ver el atajo o dictar con un clic." checked={settings.showPill} onChange={v => void set('showPill', v)} />
+        <Toggle label="Píldora flotante siempre visible" description={`Una línea discreta ${platformWords.pillPlace}. Pasa el puntero para ver el atajo o dictar con un clic.`} checked={settings.showPill} onChange={v => void set('showPill', v)} />
         <Toggle label="Leer el texto junto al cursor" description="Bruma mira las últimas palabras antes del cursor para poner bien los espacios y las mayúsculas. Nunca lee campos de contraseña." checked={settings.useCursorContext} onChange={v => void set('useCursorContext', v)} />
         <Toggle label="Sonidos" description="Un tono suave al empezar y al terminar." checked={settings.playSounds} onChange={v => void set('playSounds', v)} />
       </div>

@@ -119,11 +119,35 @@ fn save_settings(app: AppHandle, settings: Settings) -> Result<Settings, String>
 
 #[tauri::command]
 async fn get_provider_status() -> Result<ProviderStatus, String> {
-    tokio::task::spawn_blocking(|| ProviderStatus {
+    tokio::task::spawn_blocking(|| { providers::forget_missing(); ProviderStatus {
         deepgram: providers::configured("deepgram"), claude: providers::configured("claude"), groq: providers::configured("groq"),
         openai: providers::configured("openai"), custom: providers::configured("custom"),
-    }).await.map_err(|_| "No se pudo consultar el almacén seguro.".into())
+    } }).await.map_err(|_| "No se pudo consultar el almacén seguro.".into())
 }
+
+/// Only says whether the clipboard holds something shaped like this service's key, and shows
+/// it masked ("gsk_…9fZ2"). The key itself never reaches the window.
+#[tauri::command]
+async fn detect_clipboard_key(provider: String) -> Option<String> {
+    tokio::task::spawn_blocking(move || {
+        let text = arboard::Clipboard::new().ok()?.get_text().ok()?;
+        providers::looks_like_key(&provider, &text).then(|| providers::mask_key(&text))
+    }).await.ok().flatten()
+}
+
+/// Saves the key that is on the clipboard right now, read and stored entirely in Rust.
+#[tauri::command]
+async fn save_clipboard_key(provider: String) -> Result<(), String> {
+    tokio::task::spawn_blocking(move || {
+        let text = arboard::Clipboard::new().and_then(|mut c| c.get_text()).map_err(|_| "No encontramos texto en el portapapeles. Copia la clave otra vez.".to_string())?;
+        if !providers::looks_like_key(&provider, &text) { return Err("Lo que copiaste no parece una clave. En Groq empieza con gsk_.".to_string()); }
+        providers::save_key(&provider, text.trim())
+    }).await.map_err(|_| "No se pudo guardar la clave.".to_string())?
+}
+
+/// One small read-only request to confirm the service accepts the saved key.
+#[tauri::command]
+async fn verify_api_key(provider: String) -> Result<(), String> { providers::verify_key(&provider).await }
 
 #[tauri::command]
 async fn save_api_key(provider: String, key: String) -> Result<(), String> {
@@ -305,7 +329,19 @@ fn install_tray(app: &tauri::App) -> tauri::Result<()> {
     let menu = Menu::with_items(app, &[&dictate, &show, &cancel, &quit])?;
     let mut rgba = vec![0u8; 32 * 32 * 4];
     for y in 0..32 { for x in 0..32 { let d = ((x as f32 - 15.5).powi(2) + (y as f32 - 15.5).powi(2)).sqrt(); if (8.0..13.0).contains(&d) { let i = (y * 32 + x) * 4; rgba[i] = 45; rgba[i + 1] = 45; rgba[i + 2] = 45; rgba[i + 3] = 255; } } }
-    TrayIconBuilder::with_id("bruma-tray").icon(tauri::image::Image::new_owned(rgba, 32, 32)).icon_as_template(true).tooltip("Bruma · Dictado por voz").menu(&menu)
+    // macOS tints a template ring to match the menu bar; Windows shows the full-color app icon.
+    #[cfg(target_os = "macos")]
+    let icon = tauri::image::Image::new_owned(rgba, 32, 32);
+    #[cfg(not(target_os = "macos"))]
+    let icon = app.default_window_icon().cloned().unwrap_or_else(|| tauri::image::Image::new_owned(rgba, 32, 32));
+    TrayIconBuilder::with_id("bruma-tray").icon(icon).icon_as_template(cfg!(target_os = "macos")).tooltip("Bruma · Dictado por voz").menu(&menu)
+        .show_menu_on_left_click(cfg!(target_os = "macos"))
+        .on_tray_icon_event(|tray, event| {
+            // Windows: a left click opens Bruma, the right click shows the menu.
+            if let tauri::tray::TrayIconEvent::Click { button: tauri::tray::MouseButton::Left, button_state: tauri::tray::MouseButtonState::Up, .. } = event {
+                if !cfg!(target_os = "macos") { let _ = show_main_window(tray.app_handle().clone()); }
+            }
+        })
         .on_menu_event(|app, event| match event.id.as_ref() {
             "dictate" => toggle_dictation(app.clone()),
             "show" => { let _ = show_main_window(app.clone()); }
@@ -357,7 +393,7 @@ pub fn run() {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event { let _ = shortcuts::end(window.app_handle()); api.prevent_close(); let _ = window.hide(); }
             }
         })
-        .invoke_handler(tauri::generate_handler![get_settings, get_system_symbol, get_permission_status, request_microphone_permission, request_accessibility_permission, open_privacy_settings, get_fn_key_ready, get_shortcut_status, begin_shortcut_test, end_shortcut_test, open_project_updates, open_url, save_settings, get_provider_status, save_api_key, delete_api_key, get_voice_state, start_dictation, stop_dictation, cancel_dictation, polish_text, insert_text, copy_text, get_history, delete_history_item, clear_history, get_active_context, show_main_window, hide_overlay, set_pill_hitbox, get_app_icon, set_practice_field, add_dictionary_term, dismiss_suggestion, list_models])
+        .invoke_handler(tauri::generate_handler![get_settings, get_system_symbol, get_permission_status, request_microphone_permission, request_accessibility_permission, open_privacy_settings, get_fn_key_ready, get_shortcut_status, begin_shortcut_test, end_shortcut_test, open_project_updates, open_url, save_settings, get_provider_status, save_api_key, delete_api_key, detect_clipboard_key, save_clipboard_key, verify_api_key, get_voice_state, start_dictation, stop_dictation, cancel_dictation, polish_text, insert_text, copy_text, get_history, delete_history_item, clear_history, get_active_context, show_main_window, hide_overlay, set_pill_hitbox, get_app_icon, set_practice_field, add_dictionary_term, dismiss_suggestion, list_models])
         .run(tauri::generate_context!())
         .expect("Bruma no pudo iniciar la aplicación");
 }

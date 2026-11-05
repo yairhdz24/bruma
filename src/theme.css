@@ -129,6 +129,20 @@ input:checked + .switch { background: var(--sky); }
 .key-guide code { padding: 1px 5px; border-radius: 6px; background: var(--chip); color: var(--text); font-size: 12px; }
 .key-guide-open { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 13px; }
 .key-guide-note { margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.choice-body .key-guide { width: 100%; margin: 0 0 12px; }
+.key-guide-free { color: color-mix(in srgb, var(--success) 62%, var(--text)); }
+.key-guide-found { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; margin-top: 12px; padding: 12px 14px; border-radius: 14px; color: var(--text); font-size: 13.5px; background: color-mix(in srgb, var(--success) 9%, var(--surface)); border: 1px solid color-mix(in srgb, var(--success) 26%, var(--line)); }
+.key-guide-found > span { flex: 1 1 200px; }
+.key-guide-found svg { color: var(--success); flex: none; }
+.key-guide.is-done { padding: 14px 18px; }
+.key-guide-success { display: flex; align-items: center; gap: 10px; margin: 0; color: var(--muted); font-size: 13.5px; }
+.key-guide-success b { color: var(--text); }
+.key-guide-success svg { color: var(--success); flex: none; }
+
+/* Windows: no material behind the window, so every surface is opaque and there are no traffic lights to make room for. */
+.platform-windows.native-app .app { background: var(--bg); }
+.platform-windows.native-app .sidebar { background: var(--sidebar); }
+.platform-windows .sidebar-top { height: 14px; }
 
 
 /* fn key test */
