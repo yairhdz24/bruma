@@ -219,21 +219,25 @@ pub async fn insert(app: &tauri::AppHandle, text: &str, cancel: &CancellationTok
         if pid == own && !main_focused {
             if let Some(hwnd) = return_to { if win::focus(hwnd) { pid = win::foreground().1; } }
         }
-        if pid == 0 || (pid == own && !practice) {
-            arboard::Clipboard::new().and_then(|mut c| c.set_text(text)).map_err(|_| "No se pudo copiar el texto.".to_string())?;
-            return Ok(Delivery::Copied);
-        }
-        let saved = win::clipboard_snapshot();
-        arboard::Clipboard::new().and_then(|mut c| c.set_text(text.clone())).map_err(|_| "No se pudo preparar el texto para insertar.".to_string())?;
-        let sequence = win::clipboard_sequence();
-        // The keys of your shortcut may still be down (Shift or Alt + Ctrl+V would do something else).
-        win::wait_for_modifiers_release(Duration::from_millis(700));
+        // Text that stays on the clipboard is still kept out of Windows clipboard history and cloud sync.
+        let leave_copied = |text: String| -> Result<Delivery, String> {
+            win::set_private_text(&text).map_err(|_| "No se pudo copiar el texto.".to_string())?;
+            Ok(Delivery::Copied)
+        };
+        if pid == 0 || (pid == own && !practice) { return leave_copied(text); }
+        // Windows silently drops simulated keys sent to apps running as administrator; don't pretend.
+        if pid != own && win::is_more_privileged(pid) { return leave_copied(text); }
+        // Your shortcut's keys may still be down: Shift, Alt or Win + Ctrl+V would do something else.
+        if !win::wait_for_modifiers_release(Duration::from_millis(900)) { return leave_copied(text); }
         if cancel.is_cancelled() { return Err("Inserción cancelada.".into()); }
-        let sent = win::press_paste();
+        let saved = win::clipboard_snapshot();
+        win::set_private_text(&text).map_err(|_| "No se pudo preparar el texto para insertar.".to_string())?;
+        let sequence = win::clipboard_sequence();
+        if !win::press_paste() { return Ok(Delivery::Copied); } // The text stays on the clipboard.
         std::thread::sleep(Duration::from_millis(450));
         // Only put your previous clipboard back if nothing else was copied meanwhile.
         if win::clipboard_sequence() == sequence { win::clipboard_restore(saved); }
-        if sent { Ok(Delivery::Pasted) } else { Err("Windows no dejó pegar el texto (las ventanas de administrador lo bloquean). Tu texto está en el historial.".into()) }
+        Ok(Delivery::Pasted)
     }).await.map_err(|_| "No se pudo insertar el texto.".to_string())?
 }
 
@@ -242,8 +246,9 @@ mod win {
     use std::sync::atomic::{AtomicIsize, AtomicU32, Ordering};
     use std::time::{Duration, Instant};
     use windows_sys::Win32::{
-        Foundation::{CloseHandle, GlobalFree, HWND},
-        System::{DataExchange::*, Memory::*, Threading::{OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION}},
+        Foundation::{CloseHandle, GlobalFree, HANDLE, HWND},
+        Security::{GetTokenInformation, TokenElevation, TOKEN_ELEVATION, TOKEN_QUERY},
+        System::{DataExchange::*, Memory::*, Threading::{GetCurrentProcess, OpenProcess, OpenProcessToken, QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION}},
         UI::{Input::KeyboardAndMouse::*, WindowsAndMessaging::*},
     };
 
@@ -266,13 +271,47 @@ mod win {
             let own = std::process::id();
             loop {
                 let (hwnd, pid) = foreground();
-                if hwnd != 0 && pid != 0 && pid != own {
+                if hwnd != 0 && pid != 0 && pid != own && !is_shell(hwnd) {
                     LAST_HWND.store(hwnd, Ordering::Release);
                     LAST_PID.store(pid, Ordering::Release);
                 }
                 std::thread::sleep(Duration::from_millis(250));
             }
         });
+    }
+
+    /// The taskbar, desktop, Start and search are never where you meant to type.
+    fn is_shell(hwnd: isize) -> bool {
+        let mut buffer = [0u16; 128];
+        let len = unsafe { GetClassNameW(hwnd as HWND, buffer.as_mut_ptr(), buffer.len() as i32) };
+        let class = String::from_utf16_lossy(&buffer[..len.max(0) as usize]);
+        matches!(class.as_str(), "Shell_TrayWnd" | "Shell_SecondaryTrayWnd" | "Progman" | "WorkerW" | "NotifyIconOverflowWindow"
+            | "TopLevelWindowForOverflowXamlIsland" | "Windows.UI.Core.CoreWindow" | "XamlExplorerHostIslandWindow")
+    }
+
+    fn elevated(process: HANDLE) -> Option<bool> {
+        unsafe {
+            let mut token: HANDLE = std::ptr::null_mut();
+            if OpenProcessToken(process, TOKEN_QUERY, &mut token) == 0 { return None; }
+            let mut elevation = TOKEN_ELEVATION { TokenIsElevated: 0 };
+            let mut size = 0u32;
+            let ok = GetTokenInformation(token, TokenElevation, &mut elevation as *mut _ as *mut _, std::mem::size_of::<TOKEN_ELEVATION>() as u32, &mut size) != 0;
+            CloseHandle(token);
+            ok.then_some(elevation.TokenIsElevated != 0)
+        }
+    }
+
+    /// True when the app runs as administrator and Bruma does not: Windows would drop the keystrokes.
+    /// When the app can't even be inspected, it is treated the same way (safe: the text is just copied).
+    pub fn is_more_privileged(pid: u32) -> bool {
+        if elevated(unsafe { GetCurrentProcess() }) == Some(true) { return false; }
+        unsafe {
+            let process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid);
+            if process.is_null() { return true; }
+            let result = elevated(process);
+            CloseHandle(process);
+            result != Some(false)
+        }
     }
 
     pub fn last_external() -> Option<(isize, u32)> {
@@ -334,12 +373,15 @@ mod win {
 
     const MODIFIERS: [u16; 5] = [VK_SHIFT, VK_CONTROL, VK_MENU, VK_LWIN, VK_RWIN];
 
-    /// Waits a moment for you to let go of your shortcut, then lifts any key still held.
-    pub fn wait_for_modifiers_release(limit: Duration) {
+    /// Waits for you to let go of your shortcut. Shift is lifted for you if needed; Alt and Win are
+    /// never faked (a lone Alt or Win release opens menus or Start), so if they stay down: false.
+    pub fn wait_for_modifiers_release(limit: Duration) -> bool {
         let start = Instant::now();
         while MODIFIERS.iter().any(|vk| key_down(*vk)) && start.elapsed() < limit { std::thread::sleep(Duration::from_millis(15)); }
-        let held: Vec<INPUT> = MODIFIERS.iter().filter(|vk| key_down(**vk)).map(|vk| key(*vk, KEYEVENTF_KEYUP)).collect();
+        if [VK_MENU, VK_LWIN, VK_RWIN].iter().any(|vk| key_down(*vk)) { return false; }
+        let held: Vec<INPUT> = [VK_SHIFT, VK_LSHIFT, VK_RSHIFT].iter().filter(|vk| key_down(**vk)).map(|vk| key(*vk, KEYEVENTF_KEYUP)).collect();
         if !held.is_empty() { unsafe { SendInput(held.len() as u32, held.as_ptr(), std::mem::size_of::<INPUT>() as i32); } }
+        true
     }
 
     fn key(vk: u16, flags: KEYBD_EVENT_FLAGS) -> INPUT {
@@ -361,6 +403,31 @@ mod win {
     /// Windows recreates bitmaps from the DIB copy, so nothing visible is lost.
     fn copyable(format: u32) -> bool {
         !matches!(format, 2 | 3 | 9 | 14 | 0x80 | 0x82 | 0x83 | 0x8E) && !(0x300..=0x3FF).contains(&format)
+    }
+
+    /// Registered formats that tell Windows not to keep this clipboard content in Win+V history,
+    /// not to sync it to other devices and not to show it to clipboard monitors.
+    fn mark_private() {
+        let mark = |name: &str, value: Option<u32>| unsafe {
+            let wide: Vec<u16> = name.encode_utf16().chain(Some(0)).collect();
+            let format = RegisterClipboardFormatW(wide.as_ptr());
+            if format == 0 { return; }
+            let bytes = value.map(u32::to_le_bytes).unwrap_or_default();
+            let memory = GlobalAlloc(GMEM_MOVEABLE, bytes.len().max(1));
+            if memory.is_null() { return; }
+            let target = GlobalLock(memory) as *mut u8;
+            if !target.is_null() { std::ptr::copy_nonoverlapping(bytes.as_ptr(), target, bytes.len()); GlobalUnlock(memory); }
+            if SetClipboardData(format, memory).is_null() { GlobalFree(memory); }
+        };
+        mark("ExcludeClipboardContentFromMonitorProcessing", None);
+        mark("CanIncludeInClipboardHistory", Some(0));
+        mark("CanUploadToCloudClipboard", Some(0));
+    }
+
+    /// Puts plain text on the clipboard, kept out of clipboard history and cloud sync.
+    pub fn set_private_text(text: &str) -> Result<(), ()> {
+        use arboard::SetExtWindows;
+        arboard::Clipboard::new().and_then(|mut c| c.set().exclude_from_history().exclude_from_cloud().exclude_from_monitoring().text(text.to_string())).map_err(|_| ())
     }
 
     pub struct Snapshot(Vec<(u32, Vec<u8>)>);
@@ -395,6 +462,8 @@ mod win {
         if !open_clipboard() { return; }
         unsafe {
             EmptyClipboard();
+            // Putting your own content back should not add a second copy to Win+V history.
+            mark_private();
             for (format, bytes) in snapshot.0 {
                 let memory = GlobalAlloc(GMEM_MOVEABLE, bytes.len());
                 if memory.is_null() { continue; }

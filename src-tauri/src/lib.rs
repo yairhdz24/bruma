@@ -141,7 +141,12 @@ async fn save_clipboard_key(provider: String) -> Result<(), String> {
     tokio::task::spawn_blocking(move || {
         let text = arboard::Clipboard::new().and_then(|mut c| c.get_text()).map_err(|_| "No encontramos texto en el portapapeles. Copia la clave otra vez.".to_string())?;
         if !providers::looks_like_key(&provider, &text) { return Err("Lo que copiaste no parece una clave. En Groq empieza con gsk_.".to_string()); }
-        providers::save_key(&provider, text.trim())
+        providers::save_key(&provider, text.trim())?;
+        // Don't leave the secret sitting on the clipboard once it is stored safely.
+        if let Ok(mut clipboard) = arboard::Clipboard::new() {
+            if clipboard.get_text().is_ok_and(|now| now == text) { let _ = clipboard.clear(); }
+        }
+        Ok(())
     }).await.map_err(|_| "No se pudo guardar la clave.".to_string())?
 }
 

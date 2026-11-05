@@ -83,6 +83,8 @@ jobs:
           mkdir release
           find dist -name '*.dmg' -exec cp {} "release/Bruma-macOS-Apple-Silicon.dmg" \;
           find dist -name '*.exe' -exec cp {} "release/Bruma-Windows-x64-setup.exe" \;
+          # Checksums let the one-line installers verify what they downloaded.
+          (cd release && sha256sum Bruma-* > SHA256SUMS.txt && cat SHA256SUMS.txt)
           ls -la release
       - uses: softprops/action-gh-release@v2
         with:

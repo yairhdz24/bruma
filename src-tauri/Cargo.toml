@@ -34,7 +34,7 @@ keyring = { version = "3.6.3", features = ["apple-native", "windows-native"] }
 open = "5"
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse", "Win32_System_DataExchange", "Win32_System_Memory", "Win32_System_Threading"] }
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse", "Win32_System_DataExchange", "Win32_Security", "Win32_System_Memory", "Win32_System_Threading"] }
 
 [profile.release]
 codegen-units = 1
