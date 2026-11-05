@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 
 const sample = 'Oye, mañana a las 10:30 revisamos el diseño y luego lo publicamos.';
 
-/** A looping demonstration over Bruma's sky: press fn, the pill wakes up, words appear in the app. */
-export default function SkyDemo({ showKey = true, showWindow = true, app = 'Mensajes', reducedMotion = false }: { showKey?: boolean; showWindow?: boolean; app?: string; reducedMotion?: boolean }) {
+/** A looping demonstration over Bruma's sky: press your dictation keys, the pill wakes up, words appear in the app. */
+export default function SkyDemo({ showKey = true, showWindow = true, app = 'Mensajes', reducedMotion = false, keys = ['fn'] }: { showKey?: boolean; showWindow?: boolean; app?: string; reducedMotion?: boolean; keys?: string[] }) {
   const words = sample.split(' ');
   const [tick, setTick] = useState(reducedMotion ? words.length + 6 : 0);
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function SkyDemo({ showKey = true, showWindow = true, app = 'Mens
         <div className="demo-window-head"><i /><i /><i /><span>{app}</span></div>
         <span className="demo-text">{words.slice(0, shown).map((word, i) => <span key={`${i}-${tick < 4 ? 'reset' : 'run'}`}>{word} </span>)}</span><span className="demo-caret" />
       </div>}
-      {showKey && <span className="demo-key" data-down={speaking || undefined}>fn</span>}
+      {showKey && <span className="demo-keys">{keys.map(key => <span key={key} className="demo-key" data-wide={key.length > 2 || undefined} data-down={speaking || undefined}>{key}</span>)}</span>}
       <span className="demo-pill" data-on={speaking || undefined}>{Array.from({ length: 11 }, (_, i) => <i key={i} />)}</span>
     </div>
   </div>;

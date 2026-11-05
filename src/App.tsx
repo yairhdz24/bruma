@@ -83,7 +83,7 @@ function MainApp() {
     <aside className="sidebar" data-tauri-drag-region>
       <div className="sidebar-top" data-tauri-drag-region>
         {/* The window uses macOS's own traffic lights (close, minimize, zoom); the preview draws stand-ins. */}
-        {!isNative && <div className="traffic" aria-hidden="true"><span className="traffic-dot is-close" /><span className="traffic-dot is-min" /><span className="traffic-dot is-max" /></div>}
+        {!isNative && !isWindows && <div className="traffic" aria-hidden="true"><span className="traffic-dot is-close" /><span className="traffic-dot is-min" /><span className="traffic-dot is-max" /></div>}
       </div>
       <div className="brand" data-tauri-drag-region><BrandMark className="brand-mark" /><span>{settings.brand}</span></div>
       {!onboarding && <nav aria-label="Secciones">{nav.map(item => <button key={item.id} type="button" className="nav-item" aria-current={view === item.id ? 'page' : undefined} onClick={() => setView(item.id)}>

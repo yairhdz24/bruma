@@ -105,6 +105,7 @@ export default function Onboarding({ settings, voice, onDone, ...connections }: 
   const ready = engineReady(settings, connections.providers);
   const progress = ((index + 1) / steps.length) * 100;
   const fnCaps = fnKeys(settings, mac);
+  const demoKeys = fnCaps ?? keys;
   const startKeys = fnCaps ? <>{fnCaps.map(k => <kbd key={k} className="keycap">{k}</kbd>)}<span>o</span></> : null;
 
   return <div className="tour" role="dialog" aria-modal="true" aria-label="Bienvenida a Bruma">
@@ -117,7 +118,7 @@ export default function Onboarding({ settings, voice, onDone, ...connections }: 
             <p className="tour-lead">Dicta en cualquier app de {platformWords.computer} y el texto aparece donde está tu cursor, con puntuación, acentos y sin muletillas. Hasta cuatro veces más rápido que teclear.</p>
             <div className="tour-actions"><button type="button" className="button-primary is-ink" onClick={next}>Empezar</button><span className="tour-credit">Creada por <b>Yair Hernández</b></span></div>
           </div>
-          <SkyDemo reducedMotion={settings.reducedMotion} />
+          <SkyDemo reducedMotion={settings.reducedMotion} keys={demoKeys} />
         </div>}
 
         {step === 'permissions' && <div className="tour-center">
@@ -142,7 +143,7 @@ export default function Onboarding({ settings, voice, onDone, ...connections }: 
             <p className="tour-lead">{fnCaps ? <>Toca <b>{fnCaps.join(' + ')}</b> para empezar y otra vez para pegar, o mantenlo presionado mientras hablas.</> : <>Presiona {keys.join(' ')} para empezar y otra vez para pegar.</>} <b>Esc</b> cancela.</p>
             <div className="tour-actions"><button type="button" className="button-primary" onClick={next}>Continuar</button></div>
           </div>
-          <SkyDemo reducedMotion={settings.reducedMotion} />
+          <SkyDemo reducedMotion={settings.reducedMotion} keys={demoKeys} />
         </div>}
 
         {step === 'key' && <div className="tour-center">

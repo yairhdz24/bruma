@@ -48,6 +48,7 @@ export default function Home({ settings, voice, history, ready, isDemo, onStart,
   const recent = history.items.slice(0, 6);
   const words = `${voice.transcript}${voice.interim ? ` ${voice.interim}` : ''}`.trim();
   const fnCaps = fnKeys(settings, mac);
+  const demoKeys = fnCaps ?? keys.map(k => k.label === 'espacio' ? 'Espacio' : k.label);
   const fn = Boolean(fnCaps);
   const fnName = fnCaps?.join(' + ') ?? 'fn';
 
@@ -78,7 +79,7 @@ export default function Home({ settings, voice, history, ready, isDemo, onStart,
         {done && <p className="tour-small">{voice.copied || voice.phase === 'ready' ? `Copiado. Pégalo con ${platformWords.paste} donde lo necesites.` : `Pegado en ${voice.context.name}.`}</p>}
         {voice.error && voice.phase !== 'idle' && <p className="home-error" role="alert">{voice.error}</p>}
       </div>
-      <SkyDemo reducedMotion={settings.reducedMotion} />
+      <SkyDemo reducedMotion={settings.reducedMotion} keys={demoKeys} />
     </section>
 
     <dl className="stats">
