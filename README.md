@@ -98,10 +98,10 @@ It downloads the latest release and signs it with a certificate created on your 
 **Fastest:** open **PowerShell** (Windows key → type *PowerShell* → Enter) and paste:
 
 ```powershell
-irm https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/install-windows.ps1 | iex
+irm https://github.com/yairhdz24/bruma/releases/latest/download/install-windows.ps1 | iex
 ```
 
-It downloads the latest release, installs it for your user only (no admin rights, no SmartScreen prompt), opens Bruma and offers to get your free Groq key right away. Run it again to update.
+It downloads the latest release, checks its SHA-256 fingerprint, installs it for your user only (no admin rights), opens Bruma and offers to get your free Groq key right away. Run it again to update.
 
 **Or with the installer:**
 
@@ -122,7 +122,7 @@ Bruma doesn't have a server, so it uses **your own key**. The keys never leave y
 **On Windows, from PowerShell:** one line opens Groq, notices the key when you copy it, verifies it and saves it where Bruma reads it:
 
 ```powershell
-irm https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/groq-key.ps1 | iex
+irm https://github.com/yairhdz24/bruma/releases/latest/download/groq-key.ps1 | iex
 ```
 
 **By hand:**

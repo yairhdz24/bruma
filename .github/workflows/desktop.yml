@@ -75,6 +75,10 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: source
+          sparse-checkout: scripts
       - uses: actions/download-artifact@v4
         with:
           path: dist
@@ -83,8 +87,11 @@ jobs:
           mkdir release
           find dist -name '*.dmg' -exec cp {} "release/Bruma-macOS-Apple-Silicon.dmg" \;
           find dist -name '*.exe' -exec cp {} "release/Bruma-Windows-x64-setup.exe" \;
-          # Checksums let the one-line installers verify what they downloaded.
-          (cd release && sha256sum Bruma-* > SHA256SUMS.txt && cat SHA256SUMS.txt)
+          # The one-line Windows commands ship with each release, so `irm | iex` runs reviewed,
+          # released code rather than whatever is on main.
+          cp source/scripts/install-windows.ps1 source/scripts/groq-key.ps1 release/
+          # Checksums let the one-line installer verify what it downloaded.
+          (cd release && sha256sum Bruma-* *.ps1 > SHA256SUMS.txt && cat SHA256SUMS.txt)
           ls -la release
       - uses: softprops/action-gh-release@v2
         with:

@@ -98,10 +98,10 @@ Descarga la última versión y la firma con un certificado creado en tu propia M
 **La forma más rápida:** abre **PowerShell** (tecla Windows → escribe *PowerShell* → Enter) y pega esta línea:
 
 ```powershell
-irm https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/install-windows.ps1 | iex
+irm https://github.com/yairhdz24/bruma/releases/latest/download/install-windows.ps1 | iex
 ```
 
-Descarga la última versión, la instala solo para tu usuario (sin permisos de administrador y sin el aviso de SmartScreen), abre Bruma y te ofrece conseguir tu clave gratis de Groq en el momento. Ejecútala de nuevo para actualizar.
+Descarga la última versión, comprueba su huella SHA-256, la instala solo para tu usuario (sin permisos de administrador), abre Bruma y te ofrece conseguir tu clave gratis de Groq en el momento. Ejecútala de nuevo para actualizar.
 
 **O con el instalador:**
 
@@ -122,7 +122,7 @@ Bruma no tiene servidor, así que usa **tu propia clave**, que nunca sale de tu 
 **En Windows, desde PowerShell:** una línea abre Groq, detecta la clave cuando la copias, la verifica y la guarda donde Bruma la lee:
 
 ```powershell
-irm https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/groq-key.ps1 | iex
+irm https://github.com/yairhdz24/bruma/releases/latest/download/groq-key.ps1 | iex
 ```
 
 **A mano:**

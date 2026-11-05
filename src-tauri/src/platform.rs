@@ -234,9 +234,11 @@ pub async fn insert(app: &tauri::AppHandle, text: &str, cancel: &CancellationTok
         win::set_private_text(&text).map_err(|_| "No se pudo preparar el texto para insertar.".to_string())?;
         let sequence = win::clipboard_sequence();
         if !win::press_paste() { return Ok(Delivery::Copied); } // The text stays on the clipboard.
-        std::thread::sleep(Duration::from_millis(450));
-        // Only put your previous clipboard back if nothing else was copied meanwhile.
-        if win::clipboard_sequence() == sequence { win::clipboard_restore(saved); }
+        // Busy apps (chat apps, Office, remote desktops) can read the clipboard late: give them time,
+        // or they would paste what you had copied before instead of your dictation.
+        std::thread::sleep(Duration::from_millis(1200));
+        // Only put your previous clipboard back if it could be read and nothing else was copied meanwhile.
+        if let Some(saved) = saved { win::clipboard_restore(saved, sequence); }
         Ok(Delivery::Pasted)
     }).await.map_err(|_| "No se pudo insertar el texto.".to_string())?
 }
@@ -316,8 +318,12 @@ mod win {
 
     pub fn last_external() -> Option<(isize, u32)> {
         let hwnd = LAST_HWND.load(Ordering::Acquire);
-        let alive = hwnd != 0 && unsafe { IsWindow(hwnd as HWND) } != 0;
-        alive.then(|| (hwnd, LAST_PID.load(Ordering::Acquire)))
+        let pid = LAST_PID.load(Ordering::Acquire);
+        if hwnd == 0 || unsafe { IsWindow(hwnd as HWND) } == 0 { return None; }
+        // Window handles get reused: only trust it if it still belongs to the same program.
+        let mut owner = 0;
+        unsafe { GetWindowThreadProcessId(hwnd as HWND, &mut owner); }
+        (owner == pid).then_some((hwnd, pid))
     }
 
     pub fn focus(hwnd: isize) -> bool {
@@ -385,7 +391,9 @@ mod win {
     }
 
     fn key(vk: u16, flags: KEYBD_EVENT_FLAGS) -> INPUT {
-        INPUT { r#type: INPUT_KEYBOARD, Anonymous: INPUT_0 { ki: KEYBDINPUT { wVk: vk, wScan: 0, dwFlags: flags, time: 0, dwExtraInfo: 0 } } }
+        // The scan code too: remote desktops, virtual machines and some apps ignore keys without it.
+        let scan = unsafe { MapVirtualKeyW(vk as u32, MAPVK_VK_TO_VSC) } as u16;
+        INPUT { r#type: INPUT_KEYBOARD, Anonymous: INPUT_0 { ki: KEYBDINPUT { wVk: vk, wScan: scan, dwFlags: flags, time: 0, dwExtraInfo: 0 } } }
     }
 
     pub fn press_paste() -> bool {
@@ -399,10 +407,22 @@ mod win {
         false
     }
 
-    /// Formats whose data is not plain memory (bitmaps, metafiles, palettes, owner-drawn, private GDI).
-    /// Windows recreates bitmaps from the DIB copy, so nothing visible is lost.
+    fn format_name(format: u32) -> String {
+        let mut buffer = [0u16; 128];
+        let len = unsafe { GetClipboardFormatNameW(format, buffer.as_mut_ptr(), buffer.len() as i32) };
+        String::from_utf16_lossy(&buffer[..len.max(0) as usize])
+    }
+
+    /// Only formats known to be plain memory blocks: standard text, rich and file formats, and
+    /// formats registered by name (HTML, RTF, app formats). Bitmaps, metafiles, palettes and the
+    /// private and GDI ranges hold other kinds of handles and are never touched. Windows rebuilds
+    /// bitmaps from the DIB copy, so pictures still come back.
     fn copyable(format: u32) -> bool {
-        !matches!(format, 2 | 3 | 9 | 14 | 0x80 | 0x82 | 0x83 | 0x8E) && !(0x300..=0x3FF).contains(&format)
+        match format {
+            1 | 4..=8 | 10..=13 | 15..=17 | 0x81 => true,
+            0xC000..=0xFFFF => !matches!(format_name(format).as_str(), "Ole Private Data" | "DataObject" | "OleClipboardPersistOnFlush"),
+            _ => false,
+        }
     }
 
     /// Registered formats that tell Windows not to keep this clipboard content in Win+V history,
@@ -432,21 +452,31 @@ mod win {
 
     pub struct Snapshot(Vec<(u32, Vec<u8>)>);
 
-    /// A copy of everything on the clipboard right now (up to 64 MB).
-    pub fn clipboard_snapshot() -> Snapshot {
+    const MAX_FORMAT: usize = 16 * 1024 * 1024;
+    const MAX_TOTAL: usize = 64 * 1024 * 1024;
+
+    /// A copy of what is on the clipboard right now, or None when it can't be read safely
+    /// (busy, or owned by an app that stopped responding). Bounded in size and time, so a huge
+    /// Office copy never stalls your dictation.
+    pub fn clipboard_snapshot() -> Option<Snapshot> {
+        unsafe {
+            let owner = GetClipboardOwner();
+            if !owner.is_null() && IsHungAppWindow(owner) != 0 { return None; }
+        }
+        if !open_clipboard() { return None; }
+        let started = Instant::now();
         let mut items = Vec::new();
-        if !open_clipboard() { return Snapshot(items); }
         let mut total = 0usize;
         let mut format = 0;
         unsafe {
             loop {
                 format = EnumClipboardFormats(format);
-                if format == 0 { break; }
+                if format == 0 || started.elapsed() > Duration::from_millis(600) { break; }
                 if !copyable(format) { continue; }
                 let handle = GetClipboardData(format);
                 if handle.is_null() { continue; }
                 let size = GlobalSize(handle);
-                if size == 0 || total + size > 64 * 1024 * 1024 { continue; }
+                if size == 0 || size > MAX_FORMAT || total + size > MAX_TOTAL { continue; }
                 let data = GlobalLock(handle) as *const u8;
                 if data.is_null() { continue; }
                 items.push((format, std::slice::from_raw_parts(data, size).to_vec()));
@@ -455,12 +485,15 @@ mod win {
             }
             CloseClipboard();
         }
-        Snapshot(items)
+        Some(Snapshot(items))
     }
 
-    pub fn clipboard_restore(snapshot: Snapshot) {
-        if !open_clipboard() { return; }
+    /// Puts the snapshot back, unless something new was copied since `sequence` (checked again
+    /// with the clipboard open, so a copy made right now is never overwritten).
+    pub fn clipboard_restore(snapshot: Snapshot, sequence: u32) {
+        if clipboard_sequence() != sequence || !open_clipboard() { return; }
         unsafe {
+            if GetClipboardSequenceNumber() != sequence { CloseClipboard(); return; }
             EmptyClipboard();
             // Putting your own content back should not add a second copy to Win+V history.
             mark_private();

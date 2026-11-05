@@ -128,9 +128,9 @@ pub fn delete_key(provider: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Forgets "no key" answers, so a key saved from outside the app (for example with the
-/// terminal helper in scripts/) shows up without restarting Bruma.
-pub fn forget_missing() { cache().lock().retain(|_, value| value.is_some()); }
+/// Forgets the keys read so far, so a key added, replaced or removed outside the app (for example
+/// with the terminal helper in scripts/ or in Credential Manager) counts without restarting Bruma.
+pub fn forget_cached() { cache().lock().clear(); }
 
 /// True when a text has the shape of this service's API keys.
 pub fn looks_like_key(provider: &str, text: &str) -> bool {
@@ -158,7 +158,8 @@ pub fn mask_key(key: &str) -> String {
 pub async fn verify_key(provider: &str) -> Result<(), String> {
     if !["groq", "openai", "claude", "deepgram"].contains(&provider) { return Err("Este servicio no se puede comprobar.".into()); }
     let key = key(provider)?;
-    let client = reqwest::Client::builder().timeout(Duration::from_secs(10)).build().map_err(|_| "No se pudo preparar la conexión.".to_string())?;
+    // Never follow redirects with a key attached.
+    let client = reqwest::Client::builder().timeout(Duration::from_secs(10)).redirect(reqwest::redirect::Policy::none()).build().map_err(|_| "No se pudo preparar la conexión.".to_string())?;
     let request = match provider {
         "groq" => client.get("https://api.groq.com/openai/v1/models").bearer_auth(&key),
         "openai" => client.get("https://api.openai.com/v1/models").bearer_auth(&key),

@@ -119,7 +119,7 @@ fn save_settings(app: AppHandle, settings: Settings) -> Result<Settings, String>
 
 #[tauri::command]
 async fn get_provider_status() -> Result<ProviderStatus, String> {
-    tokio::task::spawn_blocking(|| { providers::forget_missing(); ProviderStatus {
+    tokio::task::spawn_blocking(|| { providers::forget_cached(); ProviderStatus {
         deepgram: providers::configured("deepgram"), claude: providers::configured("claude"), groq: providers::configured("groq"),
         openai: providers::configured("openai"), custom: providers::configured("custom"),
     } }).await.map_err(|_| "No se pudo consultar el almacén seguro.".into())
@@ -137,10 +137,12 @@ async fn detect_clipboard_key(provider: String) -> Option<String> {
 
 /// Saves the key that is on the clipboard right now, read and stored entirely in Rust.
 #[tauri::command]
-async fn save_clipboard_key(provider: String) -> Result<(), String> {
+async fn save_clipboard_key(provider: String, expected: Option<String>) -> Result<(), String> {
     tokio::task::spawn_blocking(move || {
         let text = arboard::Clipboard::new().and_then(|mut c| c.get_text()).map_err(|_| "No encontramos texto en el portapapeles. Copia la clave otra vez.".to_string())?;
         if !providers::looks_like_key(&provider, &text) { return Err("Lo que copiaste no parece una clave. En Groq empieza con gsk_.".to_string()); }
+        // The key you were shown (masked) is the one that gets saved, even if the clipboard changed since.
+        if expected.is_some_and(|mask| mask != providers::mask_key(&text)) { return Err("El portapapeles cambió. Copia la clave otra vez.".to_string()); }
         providers::save_key(&provider, text.trim())?;
         // Don't leave the secret sitting on the clipboard once it is stored safely.
         if let Ok(mut clipboard) = arboard::Clipboard::new() {

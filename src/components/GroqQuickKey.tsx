@@ -41,7 +41,7 @@ export default function GroqQuickKey({ onSaved, compact = false }: { onSaved: ()
   async function saveCopied() {
     setPhase('saving'); setError('');
     try {
-      await command('save_clipboard_key', { provider: 'groq' });
+      await command('save_clipboard_key', { provider: 'groq', expected: masked || null });
       await onSaved();
     } catch (cause) { setError(errorMessage(cause)); setPhase('waiting'); return; }
     try { await command('verify_api_key', { provider: 'groq' }); setPhase('done'); }
