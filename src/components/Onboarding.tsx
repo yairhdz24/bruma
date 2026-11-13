@@ -131,7 +131,7 @@ export default function Onboarding({ settings, voice, onDone, ...connections }: 
         {step === 'welcome' && <div className="tour-split">
           <div>
             <p className="tour-hero">Habla.<br /><em>Bruma</em> escribe.</p>
-            <p className="tour-lead">Dicta en cualquier app de tu Mac y el texto aparece donde está tu cursor, con puntuación, acentos y sin muletillas. Hasta cuatro veces más rápido que teclear.</p>
+            <p className="tour-lead">Dicta en cualquier app de tu {mac ? 'Mac' : 'computadora'} y el texto aparece donde está tu cursor, con puntuación, acentos y sin muletillas. Hasta cuatro veces más rápido que teclear.</p>
             <div className="tour-actions"><button type="button" className="button-primary is-ink" onClick={next}>Empezar</button><span className="tour-credit">Creada por <b>Yair Hernández</b></span></div>
           </div>
           <SkyDemo reducedMotion={settings.reducedMotion} />
@@ -139,7 +139,7 @@ export default function Onboarding({ settings, voice, onDone, ...connections }: 
 
         {step === 'permissions' && <div className="tour-center">
           <h1>Dos permisos y listo</h1>
-          <p className="tour-lead">El micrófono solo se enciende cuando tú empiezas a dictar. Accesibilidad le permite a Bruma pegar el texto y reconocer la tecla fn.</p>
+          <p className="tour-lead">{mac ? 'El micrófono solo se enciende cuando tú empiezas a dictar. Accesibilidad le permite a Bruma pegar el texto y reconocer la tecla fn.' : 'El micrófono solo se enciende cuando tú empiezas a dictar. Bruma pega el texto donde está tu cursor y después devuelve tu portapapeles.'}</p>
           <div className="tour-panel"><PermissionSetup /></div>
           <div className="tour-actions"><button type="button" className="button-primary" onClick={next}>Continuar</button></div>
         </div>}

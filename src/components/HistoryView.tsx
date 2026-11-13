@@ -18,7 +18,7 @@ export default function HistoryView({ history, settings, onSave, onNotice }: Pro
     try { await onSave({ ...settings, saveHistory }); onNotice(saveHistory ? 'Bruma guardará tus próximos dictados.' : 'Los próximos dictados ya no se guardarán.'); } catch (error) { onNotice(errorMessage(error)); }
   }
   return <div className="page">
-    <header className="page-header"><h1>Historial</h1><p>Todo lo que has dictado, guardado solo en este Mac. Copia cualquier texto otra vez.</p></header>
+    <header className="page-header"><h1>Historial</h1><p>Todo lo que has dictado, guardado solo en esta computadora. Copia cualquier texto otra vez.</p></header>
     <div className="toolbar">
       <label className="search"><MagnifyingGlassIcon size={15} aria-hidden="true" /><span className="sr-only">Buscar en el historial</span><input type="search" placeholder="Buscar" value={query} onChange={event => setQuery(event.target.value)} /></label>
       <label className="inline-toggle"><input type="checkbox" checked={settings.saveHistory} onChange={event => void toggle(event.target.checked)} /><span className="switch" aria-hidden="true" />Guardar dictados</label>

@@ -89,6 +89,8 @@ input:checked + .switch { background: var(--sky); }
 @keyframes word-in { from { opacity: 0; filter: blur(6px); } to { opacity: 1; filter: none; } }
 .demo-key { position: absolute; top: 50%; left: 50%; display: grid; place-items: center; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 16px; color: #fff; font: 600 22px ui-rounded, var(--font-sans); background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .5); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 10px 30px -10px rgba(0,20,60,.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); transition: transform .2s cubic-bezier(.3,1.4,.5,1), background .2s; }
 .demo-key[data-down] { transform: scale(.92); background: rgba(120, 180, 255, .55); }
+.demo-key[data-wide] { width: auto; padding: 0 18px; margin-left: 0; transform: translateX(-50%); font-size: 17px; white-space: nowrap; }
+.demo-key[data-wide][data-down] { transform: translateX(-50%) scale(.92); }
 .demo-pill { --w: 44px; --h: 9px; display: flex; align-items: center; justify-content: center; gap: 3px; width: var(--w); height: var(--h); border-radius: 999px; background: rgba(8, 9, 12, .92); border: 1px solid rgba(255, 255, 255, .3); transition: width .5s cubic-bezier(.3,1.35,.45,1), height .5s cubic-bezier(.3,1.35,.45,1); }
 .demo-pill[data-on] { --w: 150px; --h: 34px; }
 .demo-pill i { width: 3px; height: 16px; border-radius: 3px; background: #fff; transform: scaleY(.2); opacity: 0; transition: opacity .2s; }
@@ -223,6 +225,12 @@ input:checked + .switch { background: var(--sky); }
 .native-app .content { background: radial-gradient(110% 55% at 100% 0%, color-mix(in srgb, var(--sky-light) 20%, transparent), transparent 60%), var(--window-tint); }
 .native-app .sidebar { background: color-mix(in srgb, var(--sidebar) 38%, transparent); border-right-color: color-mix(in srgb, var(--glass-line) 60%, transparent); }
 .native-app [data-reduce-transparency] .content, .native-app [data-reduce-transparency] .sidebar { background: var(--bg); }
+/* Windows has no window material behind the app: paint it solid, white by default. */
+html.os-windows, html.os-windows body { background: var(--bg); }
+.os-windows .app { background: var(--bg); }
+.os-windows .sidebar { background: var(--sidebar); border-right-color: var(--line); }
+.os-windows .content { background: radial-gradient(120% 60% at 100% 0%, color-mix(in srgb, var(--sky-light) 22%, transparent), transparent 60%), linear-gradient(180deg, var(--bg) 70%, var(--fog)); }
+.os-windows .sidebar-top { height: 8px; }
 
 .panel, .choice, .permission-row, .glass-panel, .stats > div, .pipeline, .key-test, .practice, .speed > div, .practice-card {
   position: relative; background: var(--glass-fill); border: 1px solid var(--glass-line); box-shadow: var(--glass-rim), var(--glass-drop);

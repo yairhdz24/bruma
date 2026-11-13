@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Bumped whenever a release changes defaults that existing users should receive.
-pub const SETTINGS_VERSION: u32 = 6;
+pub const SETTINGS_VERSION: u32 = 7;
 pub const STT_PROVIDERS: [&str; 4] = ["groq", "openai", "custom", "deepgram"];
 pub const POLISH_PROVIDERS: [&str; 4] = ["auto", "claude", "groq", "none"];
 pub const KEY_PROVIDERS: [&str; 5] = ["groq", "openai", "custom", "deepgram", "claude"];
@@ -78,7 +78,8 @@ pub struct Settings {
     #[serde(default)]
     pub personal_rules: String,
 }
-fn default_theme() -> String { "system".into() }
+// Windows starts in Bruma's white look; macOS follows the system appearance.
+fn default_theme() -> String { if cfg!(windows) { "light".into() } else { "system".into() } }
 fn default_ui_language() -> String { "es".into() }
 fn default_stt_provider() -> String { "groq".into() }
 fn default_polish_provider() -> String { "auto".into() }
@@ -118,6 +119,8 @@ impl Settings {
             // The larger open model punctuates Spanish much better and is still sub-second on Groq.
             if self.groq_polish_model == "openai/gpt-oss-20b" { self.groq_polish_model = default_groq_polish_model(); }
         }
+        // 0.8: on Windows the app is opaque white by default (dark stays one tap away in Ajustes).
+        if self.settings_version < 7 && cfg!(windows) && self.theme == "system" { self.theme = "light".into(); }
         self.settings_version = SETTINGS_VERSION;
         (self, true)
     }

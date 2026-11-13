@@ -52,7 +52,7 @@ function MainApp() {
     void getSettings().then(saved => { if (!disposed) { setSettings(saved); setOnboarding(saved.onboardingVersion < ONBOARDING_VERSION); setLoaded(true); } })
       .catch(error => { if (!disposed) { showNotice(errorMessage(error)); setLoaded(true); } });
     void getProviderStatus().then(status => { if (!disposed) setProviders(status); }).catch(() => {});
-    if (isNative) document.documentElement.classList.add('native-app');
+    if (isNative) document.documentElement.classList.add('native-app', mac ? 'os-mac' : 'os-windows');
     return () => { disposed = true; };
   }, [showNotice]);
 

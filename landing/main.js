@@ -7,6 +7,8 @@
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const hasGsap = typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined';
   const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const WIN = document.documentElement.dataset.os === 'win';
+  const KEY = WIN ? '<b>Ctrl + Espacio</b>' : '<b>fn</b>';
 
   if (hasGsap) gsap.registerPlugin(ScrollTrigger);
 
@@ -197,8 +199,8 @@
     let level = 0, levelRaf = 0;
     let finishNow = null;
     const hints = {
-      idle: 'Toca <b>fn</b> para dictar, y otra vez para pegar',
-      listening: 'Escuchando… toca <b>fn</b> otra vez para pegar',
+      idle: `Presiona ${KEY} y dicta con tu voz`,
+      listening: `Escuchando… presiona ${KEY} otra vez para pegar`,
       working: 'Puliendo el texto…',
       done: 'Pegado donde estaba tu cursor',
     };
@@ -298,7 +300,10 @@
     /* Real voice, via the browser's speech recognition */
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     let useMic = false, rec = null, stream = null, ctx = null, analyser = null, micRaf = 0, heard = '';
-    if (SR && navigator.mediaDevices && window.isSecureContext) micBtn.hidden = false;
+    const canListen = !!(SR && navigator.mediaDevices && window.isSecureContext);
+    // Real dictation is the default wherever the browser can do it; elsewhere the demo plays a script.
+    if (canListen) useMic = true;
+    else { micNote.textContent = 'Tu navegador no tiene reconocimiento de voz, así que ves una demostración. Pruébalo en Chrome, Edge o Safari, o descarga Bruma.'; }
 
     const polish = s => {
       let t = ' ' + s.trim() + ' ';
@@ -330,8 +335,9 @@
         if (!analyser) { analyser = ctx.createAnalyser(); analyser.fftSize = 512; ctx.createMediaStreamSource(stream).connect(analyser); }
         await ctx.resume();
       } catch {
-        hint.textContent = 'Sin permiso de micrófono. Puedes ver la demostración sin él.';
+        hint.textContent = 'Sin permiso de micrófono: te muestro una demostración.';
         setMic(false);
+        playScript();
         return;
       }
       rec = new SR();
@@ -364,7 +370,7 @@
       rec = null;
       await sleep(250);
       const clean = polish(heard);
-      if (!clean) { stopLevel(); showLive([]); setMode('idle'); hint.textContent = 'No te escuché. Toca fn e inténtalo otra vez.'; return; }
+      if (!clean) { stopLevel(); showLive([]); setMode('idle'); hint.innerHTML = `No te escuché. Presiona ${KEY} e inténtalo otra vez.`; return; }
       await finish(clean, token);
     };
 
@@ -372,7 +378,6 @@
       useMic = on;
       micBtn.setAttribute('aria-pressed', String(on));
       $('[data-mic-label]', micBtn).textContent = on ? 'Usando tu micrófono' : 'Probar con mi voz';
-      micNote.hidden = !on;
       if (!on && stream) { stream.getTracks().forEach(t => t.stop()); stream = null; analyser = null; }
     };
     micBtn.addEventListener('click', () => { interacted = true; setMic(!useMic); });
@@ -383,14 +388,29 @@
       fnKey.classList.add('is-down');
       setTimeout(() => fnKey.classList.remove('is-down'), 140);
       if (mode === 'listening') {
-        if (useMic) stopMic();
-        else if (finishNow) finishNow();
+        if (finishNow) finishNow();   // the scripted demo is playing
+        else if (useMic) stopMic();
         return;
       }
       if (mode === 'working') return;
       if (useMic) startMic(); else playScript();
     };
+    hint.innerHTML = hints.idle;
     fnKey.addEventListener('click', press);
+    // The real shortcut works on the page too: Ctrl + Espacio on Windows; fn (when the browser reports it) or ⌥ + Espacio on Mac.
+    const isDictationKey = e => {
+      if (e.repeat) return false;
+      if (e.key === 'Fn' || e.key === 'FnLock') return true;
+      if (e.code !== 'Space') return false;
+      return WIN ? (e.ctrlKey && !e.altKey && !e.metaKey) : ((e.altKey || e.ctrlKey) && !e.metaKey);
+    };
+    window.addEventListener('keydown', e => {
+      if (!isDictationKey(e)) return;
+      const r = demo.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight) return;
+      e.preventDefault();
+      press();
+    });
     window.addEventListener('keydown', e => {
       if (e.key === 'Escape' && mode === 'listening') {
         run++; stopLevel(); showLive([]); setMode('idle');
@@ -437,10 +457,32 @@
     };
     build();
 
+    // The page travels through three apps, and takes each one's color, like the pill does.
+    const paper = $('[data-paper]');
+    const appBox = $('[data-paper-app]');
+    const PAPER_APPS = [
+      { name: 'WhatsApp', logo: 'whatsapp', meta: 'Equipo', color: '#25d366' },
+      { name: 'Slack', logo: 'slack', meta: '#lanzamiento', color: '#8d4bbb' },
+      { name: 'Gmail', logo: 'gmail', meta: 'Nuevo mensaje', color: '#ea4335' },
+    ];
+    let appIdx = -1, stepIdx = 0;
+    const setApp = i => {
+      if (i === appIdx) return;
+      appIdx = i;
+      const a = PAPER_APPS[i];
+      $('[data-paper-logo]').src = `assets/brands/${a.logo}.svg`;
+      $('[data-paper-name]').textContent = a.name;
+      $('[data-paper-meta]').textContent = a.meta;
+      appBox.classList.remove('is-swapping'); void appBox.offsetWidth; appBox.classList.add('is-swapping');
+      if (hasGsap && !reduced) gsap.to(paper, { '--app': a.color, duration: .5, ease: 'power2.out' });
+      else paper.style.setProperty('--app', a.color);
+      if (stepIdx === 3) state.textContent = `Pegado en ${a.name}`;
+    };
+    setApp(0);
     const setStep = i => {
+      stepIdx = i;
       stepEls.forEach((li, j) => li.classList.toggle('is-on', j === i));
-      state.textContent = ['Escuchando…', 'Transcribiendo…', 'Puliendo…', 'Pegado en #lanzamiento'][i];
-      state.style.color = i === 3 ? '#1d8a52' : '';
+      state.textContent = ['Escuchando…', 'Transcribiendo…', 'Puliendo…', `Pegado en ${PAPER_APPS[Math.max(appIdx, 0)].name}`][i];
     };
 
     if (!hasGsap || reduced) {
@@ -449,6 +491,8 @@
       $$('.swap .from', holder).forEach(e => e.remove());
       $$('.swap .to', holder).forEach(e => (e.style.opacity = 1));
       setStep(3);
+      let k = 0;
+      setInterval(() => setApp(++k % PAPER_APPS.length), 2600);
       return;
     }
 
@@ -478,6 +522,7 @@
           onUpdate: self => {
             const p = self.progress;
             setStep(p < .3 ? 0 : p < .42 ? 1 : p < .82 ? 2 : 3);
+            setApp(p < .34 ? 0 : p < .67 ? 1 : 2);
           },
         },
       });
@@ -517,7 +562,7 @@
     const apps = [
       { name: 'WhatsApp', logo: 'whatsapp', color: '#25d366', cls: 'wa', meta: 'Familia', tone: 'Breve, como chat',
         body: '<span class="msg">Ya voy saliendo, llego en 10. ¿Quieren que pase por pan?</span>' },
-      { name: 'Slack', logo: 'slack', color: '#e01e5a', meta: '#producto', tone: 'Directo, con contexto',
+      { name: 'Slack', logo: 'slack', color: '#8d4bbb', meta: '#producto', tone: 'Directo, con contexto',
         body: '<p>Ya quedó el deploy. ¿Revisas el PR cuando puedas? Te dejé los cambios en la rama de diseño.</p>' },
       { name: 'Gmail', logo: 'gmail', color: '#ea4335', meta: 'Nuevo mensaje', tone: 'Párrafos y saludo',
         body: '<p>Hola, Andrea:</p><p>Te comparto la propuesta actualizada con los cambios que platicamos el jueves. Si te parece bien, la presentamos el lunes.</p><p>Saludos,<br>Yair</p>' },
@@ -542,8 +587,9 @@
       active = i;
       cards.forEach((c, j) => c.classList.toggle('is-active', j === i));
       label.textContent = apps[i].name;
-      if (hasGsap) gsap.to(pill, { '--brand': apps[i].color, duration: .5, ease: 'power2.out' });
-      else pill.style.setProperty('--brand', apps[i].color);
+      const section = $('[data-apps]');
+      if (hasGsap) { gsap.to(pill, { '--brand': apps[i].color, duration: .5, ease: 'power2.out' }); gsap.to(section, { '--active': apps[i].color, duration: .6, ease: 'power2.out' }); }
+      else { pill.style.setProperty('--brand', apps[i].color); section.style.setProperty('--active', apps[i].color); }
     };
     activate(0);
 
@@ -664,18 +710,30 @@
     gsap.fromTo('[data-download-sky] img', { yPercent: -8 }, { yPercent: 6, ease: 'none', scrollTrigger: { trigger: '[data-download]', start: 'top bottom', end: 'bottom top', scrub: true } });
     gsap.from('.download-inner h2', { opacity: 0, filter: 'blur(16px)', y: 30, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: '[data-download]', start: 'top 55%' } });
   }
-  const copy = $('[data-copy]');
-  copy.addEventListener('click', async () => {
-    const text = $('[data-cmd]').textContent;
-    try { await navigator.clipboard.writeText(text); }
+  // Your OS first: primary download button and the matching install command.
+  (() => {
+    const os = WIN ? 'win' : 'mac';
+    const buttons = $('.dl-buttons');
+    $$('[data-dl]', buttons).forEach(a => a.classList.toggle('is-secondary', a.dataset.dl !== os));
+    buttons.prepend($(`[data-dl="${os}"]`, buttons));
+    const show = tab => {
+      $$('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+      $$('[data-panel]').forEach(p => (p.hidden = p.dataset.panel !== tab));
+    };
+    $$('[data-tab]').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
+    show(os);
+  })();
+  $$('[data-copy]').forEach(copy => copy.addEventListener('click', async () => {
+    const code = $('[data-cmd]', copy.parentElement);
+    try { await navigator.clipboard.writeText(code.textContent); }
     catch {
-      const r = document.createRange(); r.selectNodeContents($('[data-cmd]'));
+      const r = document.createRange(); r.selectNodeContents(code);
       const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); s.removeAllRanges();
     }
     copy.textContent = 'Copiado';
     copy.classList.add('is-done');
     setTimeout(() => { copy.textContent = 'Copiar'; copy.classList.remove('is-done'); }, 1800);
-  });
+  }));
 
   window.addEventListener('load', () => hasGsap && ScrollTrigger.refresh());
 })();

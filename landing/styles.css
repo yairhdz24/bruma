@@ -499,3 +499,58 @@ h2 { text-wrap: balance; }
 }
 .demo-note { color: var(--muted); }
 .hero.no-webgl::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 240px; z-index: -1; background: linear-gradient(180deg, rgba(251,252,254,0), var(--cloud) 75%); }
+
+/* ============ Mac + Windows ============ */
+html[data-os="mac"] .only-win, html[data-os="win"] .only-mac { display: none !important; }
+.hero-also { margin: 18px 0 0; font-size: 14.5px; color: rgba(255,255,255,.88); }
+.hero-also a { color: #fff; font-weight: 600; text-underline-offset: 3px; }
+.badge-new { display: inline-block; margin-right: 6px; padding: 3px 9px; border-radius: 999px; font: 700 11.5px/1.3 var(--rounded); letter-spacing: .02em; text-transform: uppercase; color: var(--deep); background: #fff; vertical-align: 1px; }
+.btn-glass-primary img[src$="windows.svg"] { filter: none; }
+
+/* The demo key: fn on Mac, Ctrl + Espacio on Windows */
+.keycap-group { display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; cursor: pointer; color: #fff; }
+.keycap-group .keycap { display: grid; place-items: center; }
+.keycap.is-wide { width: 78px; font-size: 20px; }
+.keycap.is-space { width: 150px; font-size: 18px; }
+.keycap-plus { font: 600 20px/1 var(--rounded); color: rgba(255,255,255,.85); }
+.keycap-group.is-down .keycap { transform: translateY(2px) scale(.97); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.5), inset 0 -1px 0 rgba(10,40,110,.35), 0 0 0 1px rgba(255,255,255,.35), 0 6px 14px -8px rgba(5,25,70,.7); }
+.keycap-group[aria-pressed="true"] .keycap { background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(214,229,250,.98)); color: var(--deep); }
+.keycap-group[aria-pressed="true"] .keycap::after { animation: none; opacity: 0; }
+.keycap-group:hover .keycap { transform: translateY(-2px); }
+.keycap-group:focus-visible { outline: 3px solid #fff; outline-offset: 6px; border-radius: 18px; }
+
+/* Stronger app tint on the pill so each app reads at a glance */
+.pill[data-mode="listening"], .apps-pill-dock .pill {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 62%, rgba(30,30,34,.9)), color-mix(in srgb, var(--brand) 38%, rgba(10,10,12,.95)));
+  border-color: color-mix(in srgb, var(--brand) 80%, #fff);
+}
+.apps { background: radial-gradient(60% 45% at 50% 100%, color-mix(in srgb, var(--active, #25d366) 22%, transparent), transparent 70%), var(--fog); transition: background .6s; }
+.apps-pill-label { color: var(--active, var(--muted)); font-weight: 700; transition: color .4s; }
+
+/* "Hablas como hablas": the page moves through WhatsApp, Slack and Gmail */
+.paper { --app: #25d366; border-color: color-mix(in srgb, var(--app) 40%, rgba(15,23,41,.07)); box-shadow: 0 1px 2px rgba(16,36,80,.06), 0 40px 80px -36px color-mix(in srgb, var(--app) 65%, rgba(30,64,140,.45)); transition: border-color .5s, box-shadow .5s; }
+.paper-bar { position: relative; background: color-mix(in srgb, var(--app) 10%, #fff); border-bottom-color: color-mix(in srgb, var(--app) 25%, var(--line)); transition: background .5s; }
+.paper-bar::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--app); transition: background .5s; }
+.paper-app { display: inline-flex; align-items: center; gap: 9px; }
+.paper-app b { font-weight: 650; }
+.paper-app small { font-weight: 500; color: var(--muted); font-size: 13px; }
+.paper-app.is-swapping { animation: app-swap .45s var(--ease); }
+@keyframes app-swap { 0% { opacity: 0; filter: blur(6px); transform: translateY(4px); } 100% { opacity: 1; filter: none; transform: none; } }
+.paper-state { color: color-mix(in srgb, var(--app) 75%, var(--ink)) !important; }
+.paper-pill { display: inline-flex; align-items: center; gap: 2.5px; height: 22px; padding: 0 8px; border-radius: 999px; background: color-mix(in srgb, var(--app) 55%, #15171c); box-shadow: 0 0 14px -2px color-mix(in srgb, var(--app) 70%, transparent); transition: background .5s, box-shadow .5s; }
+.paper-pill i { width: 2.5px; height: 12px; border-radius: 2px; background: #fff; animation: paper-wave 1s ease-in-out infinite; }
+.paper-pill i:nth-child(2) { animation-delay: .12s; } .paper-pill i:nth-child(3) { animation-delay: .24s; } .paper-pill i:nth-child(4) { animation-delay: .36s; } .paper-pill i:nth-child(5) { animation-delay: .48s; }
+@keyframes paper-wave { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+
+/* Install command tabs */
+.term-tabs { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 16px; border-radius: 14px; background: rgba(8,12,24,.45); border: 1px solid rgba(255,255,255,.14); }
+.term-tabs button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border: 0; border-radius: 10px; background: none; color: rgba(255,255,255,.8); font: 600 14px/1 var(--rounded); cursor: pointer; }
+.term-tabs button img { filter: brightness(0) invert(1); opacity: .85; }
+.term-tabs button[aria-selected="true"] { background: #fff; color: var(--ink); }
+.term-tabs button[aria-selected="true"] img { filter: none; opacity: 1; }
+.term-panel p { margin: 16px 0 10px; }
+.term-panel p:first-child { margin-top: 0; }
+.term-panel p code { font: 13px var(--mono); color: #fff; }
+.term + p { margin-top: 18px; }
+@media (max-width: 760px) { .keycap.is-space { width: 112px; } .keycap.is-wide { width: 66px; } }
+[hidden] { display: none !important; }

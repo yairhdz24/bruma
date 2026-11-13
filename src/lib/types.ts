@@ -64,7 +64,7 @@ export const emptyProviders: ProviderStatus = { groq: false, openai: false, cust
 export const emptyHistory: History = { totals: { dictations: 0, words: 0, speakingMs: 0, activeDays: [] }, items: [] };
 export const defaultSettings: Settings = {
   brand: 'Bruma', language: 'es', targetLanguage: 'original', tone: 'natural',
-  theme: 'system', uiLanguage: 'es', profileName: '', onboardingVersion: 0, settingsVersion: 6,
+  theme: 'system', uiLanguage: 'es', profileName: '', onboardingVersion: 0, settingsVersion: 7,
   pauseMs: 1400, autoFinish: false, shortcut: 'Control+Space',
   dictionary: [], claudeModel: 'claude-haiku-5-5', useClaude: true,
   confirmBeforeInsert: false, reducedMotion: false, reduceTransparency: false, highContrast: false,

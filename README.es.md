@@ -15,7 +15,7 @@ Teclado por voz gratuito y de código abierto para tu Mac. Toca <kbd>fn</kbd>, h
   <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-MIT-8E8E93?style=flat-square" alt="MIT" /></a>
   <br />
   <a href="#descargar"><img src="https://img.shields.io/badge/macOS-Apple%20Silicon-111111?style=flat-square&logo=apple&logoColor=white" alt="macOS" /></a>
-  <a href="#descargar"><img src="https://img.shields.io/badge/Windows-beta-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" /></a>
+  <a href="#descargar"><img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" /></a>
   <img src="https://img.shields.io/badge/Tauri%202-Rust%20%2B%20React-24C8DB?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-bienvenidos-FF2D55?style=flat-square" alt="PRs welcome" /></a>
   <a href="https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/yairhdz24/bruma/good%20first%20issue?style=flat-square&color=AF52DE&label=good%20first%20issues&cacheSeconds=600" alt="Good first issues" /></a>
@@ -66,7 +66,7 @@ Teclado por voz gratuito y de código abierto para tu Mac. Toca <kbd>fn</kbd>, h
 | | |
 | --- | --- |
 | 🍎 **macOS** · Apple Silicon (M1–M4), macOS 12 o superior | [**Descargar Bruma para Mac (.dmg)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-macOS-Apple-Silicon.dmg) |
-| 🪟 **Windows** 10/11 · 64 bits (beta) | [**Descargar Bruma para Windows (.exe)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe) |
+| 🪟 **Windows** 10/11 · 64 bits | [**Descargar Bruma para Windows (.exe)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe) |
 
 Todas las versiones y sus novedades: [Releases](https://github.com/yairhdz24/bruma/releases).
 
@@ -94,6 +94,14 @@ Descarga la última versión y la firma con un certificado creado en tu propia M
 </details>
 
 ### Instalar en Windows
+
+**Con un comando** (PowerShell, sin permisos de administrador; vuelve a correrlo para actualizar):
+
+```powershell
+irm https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/install-windows.ps1 | iex
+```
+
+**O a mano:**
 
 1. Ejecuta `Bruma-Windows-x64-setup.exe`. Si aparece SmartScreen, haz clic en **Más información → Ejecutar de todas formas** (la app todavía no está firmada).
 2. Permite el acceso al micrófono si Windows lo pide (**Configuración → Privacidad → Micrófono**).

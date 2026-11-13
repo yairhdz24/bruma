@@ -15,7 +15,7 @@ Free, open-source voice keyboard for your Mac. Tap <kbd>fn</kbd>, speak, and cle
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-8E8E93?style=flat-square" alt="MIT" /></a>
   <br />
   <a href="#download"><img src="https://img.shields.io/badge/macOS-Apple%20Silicon-111111?style=flat-square&logo=apple&logoColor=white" alt="macOS" /></a>
-  <a href="#download"><img src="https://img.shields.io/badge/Windows-beta-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" /></a>
+  <a href="#download"><img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows" /></a>
   <img src="https://img.shields.io/badge/Tauri%202-Rust%20%2B%20React-24C8DB?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-FF2D55?style=flat-square" alt="PRs welcome" /></a>
   <a href="https://github.com/yairhdz24/bruma/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/yairhdz24/bruma/good%20first%20issue?style=flat-square&color=AF52DE&label=good%20first%20issues&cacheSeconds=600" alt="Good first issues" /></a>
@@ -66,7 +66,7 @@ Free, open-source voice keyboard for your Mac. Tap <kbd>fn</kbd>, speak, and cle
 | | |
 | --- | --- |
 | 🍎 **macOS** · Apple Silicon (M1–M4), macOS 12+ | [**Download Bruma for Mac (.dmg)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-macOS-Apple-Silicon.dmg) |
-| 🪟 **Windows** 10/11 · 64-bit (beta) | [**Download Bruma for Windows (.exe)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe) |
+| 🪟 **Windows** 10/11 · 64-bit | [**Download Bruma for Windows (.exe)**](https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe) |
 
 All versions and release notes: [Releases](https://github.com/yairhdz24/bruma/releases).
 
@@ -95,7 +95,15 @@ It downloads the latest release and signs it with a certificate created on your 
 
 ### Install on Windows
 
-1. Run `Bruma-Windows-x64-setup.exe`. If SmartScreen appears, click **More info → Run anyway** (the app isn't code-signed yet).
+**One command** (PowerShell, no admin needed; run it again to update):
+
+```powershell
+irm https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/install-windows.ps1 | iex
+```
+
+**Or by hand:**
+
+1. Run `Bruma-Windows-x64-setup.exe`. If SmartScreen appears, click **More info → Run anyway** (code signing is on the way; the PowerShell command above skips this prompt).
 2. Allow microphone access if Windows asks (**Settings → Privacy → Microphone**).
 3. Use a shortcut such as <kbd>Ctrl</kbd>+<kbd>Space</kbd> to dictate (the fn key is macOS-only).
 

@@ -35,7 +35,7 @@ function KeyForm({ provider, label, stored, optional = false, onSaveKey, onDelet
     event.preventDefault();
     if (!key.trim()) { setError('Pega la clave para guardarla.'); return; }
     setBusy(true); setError('');
-    try { await onSaveKey(provider, key.trim()); setKey(''); onNotice(`Clave de ${label} guardada en el llavero.`); }
+    try { await onSaveKey(provider, key.trim()); setKey(''); onNotice(`Clave de ${label} guardada en tu computadora.`); }
     catch (cause) { setError(errorMessage(cause)); }
     finally { setBusy(false); }
   }
@@ -113,7 +113,7 @@ export default function Connections({ settings, providers, onSave, onSaveKey, on
   const engineReadyNow = engine.id === 'custom' ? Boolean(settings.sttBaseUrl) : providers[engine.id];
   const polishLogo = polishActive === 'Claude' ? '/brands/claude.svg' : polishActive === 'Groq' ? '/brands/groq.svg' : undefined;
   return <div className="page">
-    <header className="page-header"><h1>Conexiones</h1><p>Elige quién convierte tu voz en texto y quién lo deja impecable. Tus claves viven en el llavero de tu Mac y el audio nunca se guarda.</p></header>
+    <header className="page-header"><h1>Conexiones</h1><p>Elige quién convierte tu voz en texto y quién lo deja impecable. Tus claves se quedan solo en tu computadora y el audio nunca se guarda.</p></header>
     <ol className="pipeline" aria-label="Cómo viaja tu voz">
       <li><span className="pipeline-icon"><MicrophoneIcon size={18} weight="fill" aria-hidden="true" /></span><span><b>Tu voz</b><small>En memoria</small></span></li>
       <li aria-hidden="true" className="pipeline-arrow"><ArrowRightIcon size={14} /></li>
