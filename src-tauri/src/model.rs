@@ -301,7 +301,7 @@ mod tests {
         assert_eq!(restored.brand, "Mi voz");
         assert_eq!(restored.shortcut, "Alt+Shift+Space");
         assert!(!restored.reduce_transparency && !restored.high_contrast);
-        assert_eq!(restored.theme, "system");
+        assert_eq!(restored.theme, default_theme());
         assert_eq!(restored.ui_language, "es");
         assert!(restored.profile_name.is_empty());
         assert_eq!(restored.onboarding_version, 0);
