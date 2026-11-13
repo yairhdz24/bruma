@@ -87,13 +87,13 @@ export default function Home({ settings, voice, history, ready, isDemo, onStart,
       <div><dt>Racha</dt><dd>{figures.streak}<small>{figures.streak === 1 ? 'día' : 'días'}</small></dd></div>
     </dl>
 
-    {showStar && <aside className="star-card" aria-label="Apoya a Bruma">
-      <span className="star-card-icon" aria-hidden="true">★</span>
-      <div><p className="star-card-title">¿Te está gustando Bruma?</p><p className="star-card-text">Llevas {number(figures.words)} palabras dictadas. Una estrella en GitHub es gratis, toma un segundo y ayuda a que más gente la encuentre.</p></div>
-      <div className="star-card-actions">
-        <button type="button" className="button-primary is-ink" onClick={() => { openRepo(); dismissStar(); }}>⭐ Dar una estrella</button>
-        <button type="button" className="button-secondary" onClick={dismissStar}>Ahora no</button>
-      </div>
+    {showStar && <aside className="star-note" aria-label="Apoya a Bruma">
+      <span className="star-note-icon" aria-hidden="true">★</span>
+      <p>¿Te sirve Bruma? Una estrella en GitHub ayuda a que más gente la encuentre.</p>
+      <button type="button" className="star-note-link" onClick={() => { openRepo(); dismissStar(); }}>Dar una estrella</button>
+      <button type="button" className="star-note-close" onClick={dismissStar} aria-label="Ocultar">
+        <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+      </button>
     </aside>}
 
     <section className="section" aria-labelledby="recent-heading">
