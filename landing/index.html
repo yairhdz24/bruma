@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Bruma — Habla. Bruma escribe.</title>
+  <meta name="description" content="Teclado por voz gratis y de código abierto para Mac. Toca fn, habla y el texto aparece limpio y bien puntuado donde está tu cursor, en cualquier app. Español, inglés y los dos mezclados." />
+  <meta name="theme-color" content="#0b2e6f" />
+  <meta name="color-scheme" content="light" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" href="assets/img/icon-256.png" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Bruma" />
+  <meta property="og:title" content="Bruma — Habla. Bruma escribe." />
+  <meta property="og:description" content="Dictado por voz gratis y de código abierto para Mac. Toca fn, habla y el texto aparece donde está tu cursor." />
+  <meta property="og:image" content="assets/img/og.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="es_MX" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Bruma — Habla. Bruma escribe." />
+  <meta name="twitter:description" content="Dictado por voz gratis y de código abierto para Mac." />
+  <meta name="twitter:image" content="assets/img/og.jpg" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Bruma",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "macOS 12+, Windows 10/11 (beta)",
+    "description": "Teclado por voz gratis y de código abierto. Toca fn, habla y el texto aparece limpio y bien puntuado donde está tu cursor, en cualquier app.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "license": "https://opensource.org/licenses/MIT",
+    "downloadUrl": "https://github.com/yairhdz24/bruma/releases/latest",
+    "codeRepository": "https://github.com/yairhdz24/bruma",
+    "author": { "@type": "Person", "name": "Yair Hernández", "url": "https://github.com/yairhdz24" },
+    "inLanguage": ["es", "en"]
+  }
+  </script>
+
+  <link rel="preload" as="image" href="assets/img/sky.webp" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip" href="#contenido">Saltar al contenido</a>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav" data-nav>
+    <a class="nav-brand" href="#top" aria-label="Bruma, inicio">
+      <img src="assets/img/icon-256.png" alt="" width="28" height="28" />
+      <span>Bruma</span>
+    </a>
+    <nav class="nav-links" aria-label="Secciones">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#apps">En tus apps</a>
+      <a href="#privacidad">Privacidad</a>
+      <a href="https://github.com/yairhdz24/bruma" target="_blank" rel="noopener" class="nav-gh">
+        <img src="assets/brands/github.svg" alt="" width="16" height="16" />
+        <span>GitHub</span>
+        <span class="star-count" data-stars hidden></span>
+      </a>
+    </nav>
+    <a class="btn btn-nav" href="#descargar">Descargar</a>
+  </header>
+
+  <main id="contenido">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="top" data-hero>
+      <div class="hero-sky" data-sky><img src="assets/img/sky.webp" alt="" fetchpriority="high" /></div>
+      <canvas class="hero-fog" data-fog aria-hidden="true"></canvas>
+
+      <div class="hero-inner">
+        <h1 class="hero-title" data-condense aria-label="Habla. Bruma escribe.">
+          <span class="line">Habla.</span>
+          <span class="line">Bruma escribe.</span>
+        </h1>
+        <p class="hero-sub" data-hero-fade>
+          Teclado por voz gratis y de código abierto para tu Mac. Toca <kbd>fn</kbd>, habla, y el texto aparece limpio y bien puntuado donde está tu cursor, en cualquier app.
+        </p>
+        <div class="hero-ctas" data-hero-fade>
+          <a class="btn btn-glass-primary" href="https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-macOS-Apple-Silicon.dmg">
+            <img src="assets/brands/apple.svg" alt="" width="16" height="16" class="icon-invert" />
+            Descargar para Mac
+          </a>
+          <a class="btn btn-glass" href="https://github.com/yairhdz24/bruma" target="_blank" rel="noopener">
+            <img src="assets/brands/github.svg" alt="" width="16" height="16" />
+            Ver el código
+          </a>
+        </div>
+
+        <!-- Live demo -->
+        <div class="demo" data-demo data-hero-fade>
+          <div class="demo-window">
+            <div class="demo-bar">
+              <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="demo-app">Mensajes</span>
+              <span class="demo-to">Para: Equipo</span>
+            </div>
+            <div class="demo-thread" aria-hidden="true">
+              <p class="bubble them">¿A qué hora es la junta de mañana?</p>
+            </div>
+            <div class="demo-field" aria-live="polite">
+              <span class="demo-text" data-demo-text></span><span class="caret" aria-hidden="true"></span>
+              <span class="demo-placeholder" data-demo-placeholder>Toca fn para dictar…</span>
+            </div>
+          </div>
+
+          <!-- The pill, docked like it sits above the Dock -->
+          <div class="pill-dock">
+            <div class="pill-live" data-live aria-hidden="true"></div>
+            <div class="pill" data-pill data-mode="idle" style="--brand: #34c759">
+              <div class="pill-glow"></div>
+              <div class="face face-record"><div class="wave" data-wave><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+              <div class="face face-working"><div class="dots"><i></i><i></i><i></i></div></div>
+              <div class="face face-done">
+                <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m3.5 8.5 3 3 6-7"/></svg>
+                <span>Pegado</span>
+              </div>
+            </div>
+          </div>
+          <div class="demo-controls">
+            <button class="keycap" type="button" data-fn aria-pressed="false" aria-label="Toca fn para dictar">
+              <span>fn</span>
+            </button>
+            <div class="demo-hint" data-demo-hint>Toca <b>fn</b> para dictar, y otra vez para pegar</div>
+            <button class="mic-toggle" type="button" data-mic hidden>
+              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 1 0-7 0v6A3.5 3.5 0 0 0 12 15Zm6.25-3.75a.75.75 0 0 1 .75.75 7 7 0 0 1-6.25 6.96V21h2.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.5v-2.04A7 7 0 0 1 5 12a.75.75 0 0 1 1.5 0 5.5 5.5 0 0 0 11 0 .75.75 0 0 1 .75-.75Z"/></svg>
+              <span data-mic-label>Probar con mi voz</span>
+            </button>
+          </div>
+
+          <p class="demo-note" data-mic-note hidden>Esta prueba usa el reconocimiento de voz de tu navegador. En tu Mac, Bruma usa Groq o el motor que elijas, y además pule el texto.</p>
+        </div>
+      </div>
+
+      <div class="hero-scroll" aria-hidden="true"><span></span></div>
+    </section>
+
+    <!-- ============ CONDENSATION (how it works) ============ -->
+    <section class="condense" id="como-funciona" data-condense-section>
+      <div class="condense-pin" data-condense-pin>
+        <div class="condense-head">
+          <h2>Hablas como hablas.<br />Se escribe como debe.</h2>
+          <p>Bruma escucha, transcribe y pule en el tiempo que tardas en soltar la tecla. Quita las muletillas, aplica tus correcciones y pone los signos que el español sí usa.</p>
+        </div>
+
+        <ol class="steps" aria-label="Lo que pasa al dictar">
+          <li data-step="0"><span class="step-n">1</span><span><b>Escucha</b> mientras hablas, solo en memoria</span></li>
+          <li data-step="1"><span class="step-n">2</span><span><b>Transcribe</b> con Groq, OpenAI, Deepgram o tu servidor</span></li>
+          <li data-step="2"><span class="step-n">3</span><span><b>Pule</b>: quita muletillas, aplica correcciones y puntúa</span></li>
+          <li data-step="3"><span class="step-n">4</span><span><b>Pega</b> donde está tu cursor y devuelve tu portapapeles</span></li>
+        </ol>
+
+        <div class="paper" data-paper>
+          <div class="paper-bar">
+            <img src="assets/brands/slack.svg" alt="" width="16" height="16" />
+            <span>#lanzamiento</span>
+            <span class="paper-state" data-paper-state>Escuchando…</span>
+          </div>
+          <p class="paper-text" data-sentence>
+            <!-- tokens built in JS from data below for exact control -->
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ APPS (horizontal) ============ -->
+    <section class="apps" id="apps" data-apps>
+      <div class="apps-pin" data-apps-pin>
+        <div class="apps-head">
+          <h2>Se pone del color de tu app.<br />Y escribe en su tono.</h2>
+          <p>La píldora toma el color de la app donde vas a escribir, sin tapar nada. Y el texto se adapta: breve en WhatsApp, en párrafos en el correo, exacto en tu editor.</p>
+        </div>
+        <div class="apps-track" data-apps-track>
+          <!-- panels injected by JS -->
+        </div>
+        <div class="apps-pill-dock" aria-hidden="true">
+          <div class="pill" data-apps-pill data-mode="listening" style="--brand: #25d366">
+            <div class="pill-glow"></div>
+            <div class="face face-record"><div class="wave is-auto"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+          </div>
+          <span class="apps-pill-label" data-apps-label>WhatsApp</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SAYINGS ============ -->
+    <section class="sayings" data-sayings>
+      <div class="wrap">
+        <h2 class="section-title">Lo que dices, lo que se escribe.</h2>
+        <p class="section-lede">Sin comandos raros. Habla normal, corrígete en voz alta y mezcla idiomas. Bruma entiende la intención.</p>
+
+        <div class="ledger" role="table" aria-label="Ejemplos de dictado">
+          <div class="ledger-head" role="row">
+            <span role="columnheader">Dices</span>
+            <span role="columnheader">Bruma escribe</span>
+          </div>
+          <div class="ledger-row" role="row" data-ledger>
+            <span role="cell" class="said">“nos vemos a las cinco, no, a las seis”</span>
+            <span role="cell" class="wrote">Nos vemos a las seis.</span>
+            <span role="cell" class="why">Se queda con tu corrección</span>
+          </div>
+          <div class="ledger-row" role="row" data-ledger>
+            <span role="cell" class="said">“qué onda cómo estás todo bien”</span>
+            <span role="cell" class="wrote">¿Qué onda? ¿Cómo estás? ¿Todo bien?</span>
+            <span role="cell" class="why">Abre y cierra signos como debe</span>
+          </div>
+          <div class="ledger-row" role="row" data-ledger>
+            <span role="cell" class="said">“el meeting del sprint review lo movemos al friday”</span>
+            <span role="cell" class="wrote">El meeting del sprint review lo movemos al friday.</span>
+            <span role="cell" class="why">Respeta tu inglés, no traduce nada</span>
+          </div>
+          <div class="ledger-row" role="row" data-ledger>
+            <span role="cell" class="said">“eh pues sube los cambios a supa base”</span>
+            <span role="cell" class="wrote">Sube los cambios a Supabase.</span>
+            <span role="cell" class="why">Quita titubeos y usa tu diccionario</span>
+          </div>
+          <div class="ledger-row" role="row" data-ledger>
+            <span role="cell" class="said">“mándame la factura a mi correo”</span>
+            <span role="cell" class="wrote">Mándame la factura a hola@tucorreo.com</span>
+            <span role="cell" class="why">Tus atajos de voz se expanden</span>
+          </div>
+          <div class="ledger-row" role="row" data-ledger>
+            <span role="cell" class="said">“lista punto uno diseño nueva línea punto dos código”</span>
+            <span role="cell" class="wrote">1. Diseño<br />2. Código</span>
+            <span role="cell" class="why">Dicta formato con palabras</span>
+          </div>
+        </div>
+
+        <!-- Learn demo -->
+        <div class="learn" data-learn>
+          <div class="learn-copy">
+            <h3>Aprende las palabras que corriges.</h3>
+            <p>Si cambias una palabra justo después de pegar, la píldora te ofrece guardarla en tu diccionario. La próxima vez sale bien a la primera.</p>
+            <p class="learn-rules">Y si quieres algo siempre, escríbelo en <b>Tus reglas</b>: “tutea siempre”, “firma los correos como Ana”, “nada de emojis”.</p>
+          </div>
+          <div class="learn-stage">
+            <div class="learn-field">Ya está en <span class="fix" data-fix><s>supa base</s> <b>Supabase</b></span><span class="caret"></span></div>
+            <div class="pill pill-learn" data-learn-pill data-mode="learn">
+              <div class="face face-learn">
+                <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M4 3.5A1.5 1.5 0 0 1 5.5 2h9A1.5 1.5 0 0 1 16 3.5v14.1a.4.4 0 0 1-.63.33L10 14.25l-5.37 3.68A.4.4 0 0 1 4 17.6V3.5Z"/></svg>
+                <span class="learn-text">¿Agregar <b>Supabase</b> a tu diccionario?</span>
+                <button type="button" class="pill-btn is-text" data-learn-add>Agregar</button>
+                <button type="button" class="pill-btn" data-learn-no aria-label="No agregar">
+                  <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="m4 4 8 8M12 4l-8 8"/></svg>
+                </button>
+              </div>
+              <div class="face face-learned">
+                <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m3.5 8.5 3 3 6-7"/></svg>
+                <span>Agregada al diccionario</span>
+              </div>
+            </div>
+            <button type="button" class="learn-replay" data-learn-replay hidden>Ver otra vez</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ THE APP ============ -->
+    <section class="showcase" data-showcase>
+      <div class="wrap showcase-head">
+        <h2 class="section-title">Una app que se siente de la Mac.</h2>
+        <p class="section-lede">Vidrio líquido, San Francisco y los botones de siempre. Tu historial, tus palabras por minuto y el tiempo que te ahorras, todo guardado solo en tu computadora.</p>
+        <div class="theme-switch" role="group" aria-label="Apariencia de la captura">
+          <button type="button" aria-pressed="true" data-shot="light">Claro</button>
+          <button type="button" aria-pressed="false" data-shot="dark">Oscuro</button>
+        </div>
+      </div>
+      <div class="device" data-device>
+        <div class="device-frame">
+          <img class="shot shot-light" src="assets/img/home-light.webp" alt="Pantalla de inicio de Bruma: saludo, estadísticas de palabras, velocidad, tiempo ahorrado y racha, y dictados recientes" width="1600" height="1031" loading="lazy" />
+          <img class="shot shot-dark" src="assets/img/home-dark.webp" alt="La misma pantalla de inicio de Bruma en modo oscuro" width="1600" height="1031" loading="lazy" />
+        </div>
+      </div>
+      <div class="wrap stats" data-stats>
+        <div><b data-count="150" data-prefix="~">0</b><span>palabras por minuto al hablar, contra unas 40 al teclear</span></div>
+        <div><b data-count="8" data-suffix=" h">0</b><span>de audio al día gratis con el plan de Groq</span></div>
+        <div><b data-count="0" data-prefix="US$">0</b><span>de suscripción. Sin cuenta y sin servidor de Bruma</span></div>
+      </div>
+    </section>
+
+    <!-- ============ ENGINES ============ -->
+    <section class="engines" data-engines>
+      <div class="wrap engines-grid">
+        <div class="engines-copy">
+          <h2 class="section-title">Tu clave. Tu motor.</h2>
+          <p class="section-lede">Bruma no tiene servidor: conectas tu propia clave y el audio va directo de tu Mac al servicio que elijas. Con la de Groq, que es gratis, ya puedes dictar.</p>
+          <a class="text-link" href="https://console.groq.com" target="_blank" rel="noopener">Crear una clave gratis en console.groq.com</a>
+        </div>
+        <ul class="engine-list">
+          <li class="engine is-default">
+            <img src="assets/brands/groq.svg" alt="" width="36" height="36" />
+            <div><b>Groq</b><span>Whisper Large v3 Turbo. Plan gratis, unas 8 h de audio al día. También pule el texto gratis.</span></div>
+            <em>Recomendado</em>
+          </li>
+          <li class="engine">
+            <img src="assets/brands/claude.svg" alt="" width="36" height="36" />
+            <div><b>Claude</b><span>La mejor redacción y puntuación. Fracciones de centavo por dictado.</span></div>
+          </li>
+          <li class="engine">
+            <span class="engine-logo dark"><img src="assets/brands/deepgram.svg" alt="" width="22" height="22" /></span>
+            <div><b>Deepgram</b><span>Nova-3 en streaming: ves las palabras mientras hablas.</span></div>
+          </li>
+          <li class="engine">
+            <span class="engine-logo dark"><img src="assets/brands/openai.svg" alt="" width="22" height="22" /></span>
+            <div><b>OpenAI</b><span>Modelos GPT-4o Transcribe, pago por uso.</span></div>
+          </li>
+          <li class="engine">
+            <span class="engine-logo server" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M4 4.75A1.75 1.75 0 0 1 5.75 3h12.5A1.75 1.75 0 0 1 20 4.75v3.5A1.75 1.75 0 0 1 18.25 10H5.75A1.75 1.75 0 0 1 4 8.25v-3.5Zm0 11A1.75 1.75 0 0 1 5.75 14h12.5A1.75 1.75 0 0 1 20 15.75v3.5A1.75 1.75 0 0 1 18.25 21H5.75A1.75 1.75 0 0 1 4 19.25v-3.5ZM7 7.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm0 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
+            </span>
+            <div><b>Tu propio servidor</b><span>Cualquier Whisper compatible con OpenAI. 100% tuyo.</span></div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ PRIVACY ============ -->
+    <section class="privacy" id="privacidad" data-privacy>
+      <div class="wrap">
+        <h2 class="section-title">Lo que dices no pasa por nosotros.</h2>
+        <p class="section-lede">No hay un “nosotros” en medio. Este es todo el camino que recorre tu voz:</p>
+
+        <div class="route" data-route aria-label="Tu voz va de tu Mac al motor que elegiste y regresa como texto a tu cursor">
+          <div class="route-node">
+            <span class="node-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 1 0-7 0v6A3.5 3.5 0 0 0 12 15Zm6.25-3.75a.75.75 0 0 1 .75.75 7 7 0 0 1-6.25 6.96V21h2.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.5v-2.04A7 7 0 0 1 5 12a.75.75 0 0 1 1.5 0 5.5 5.5 0 0 0 11 0 .75.75 0 0 1 .75-.75Z"/></svg>
+            </span>
+            <b>Tu Mac</b><span>Audio solo en memoria</span>
+          </div>
+          <div class="route-line"><i data-route-dot></i></div>
+          <div class="route-node">
+            <span class="node-icon"><img src="assets/brands/groq.svg" alt="" width="24" height="24" /></span>
+            <b>El motor que elegiste</b><span>Con tu clave</span>
+          </div>
+          <div class="route-line"><i data-route-dot></i></div>
+          <div class="route-node">
+            <span class="node-icon cursor-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M9 4h2.5M12.5 4H15M12 4v16M9 20h2.5M12.5 20H15"/></svg>
+            </span>
+            <b>Tu cursor</b><span>Pega y devuelve tu portapapeles</span>
+          </div>
+          <div class="route-ghost" aria-hidden="true"><s>Servidor de Bruma</s><span>No existe</span></div>
+        </div>
+
+        <ul class="promises">
+          <li><b>Tus claves nunca salen de tu computadora.</b> En macOS van en un archivo privado que solo tu usuario puede leer; en Windows, en el Administrador de credenciales.</li>
+          <li><b>El audio nunca se guarda.</b> Vive en memoria y solo viaja al motor que tú elegiste.</li>
+          <li><b>Nunca envía por ti.</b> Bruma pega el texto, jamás presiona Enter.</li>
+          <li><b>No lee campos de contraseña.</b> El contexto del cursor se ignora donde escribes secretos.</li>
+          <li><b>Sin telemetría y sin cuenta.</b> El historial es local y lo puedes apagar o borrar.</li>
+          <li><b>Código abierto, licencia MIT.</b> Todo lo de arriba lo puedes verificar línea por línea.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ DOWNLOAD ============ -->
+    <section class="download" id="descargar" data-download>
+      <div class="download-sky" data-download-sky><img src="assets/img/sky.webp" alt="" loading="lazy" /></div>
+      <div class="download-fog" aria-hidden="true"></div>
+      <div class="wrap download-inner">
+        <img class="download-icon" src="assets/img/icon-512.png" alt="Ícono de Bruma" width="132" height="132" loading="lazy" />
+        <h2>Toca fn. Empieza a hablar.</h2>
+        <p>Gratis para siempre en uso personal. Solo necesitas una clave de Groq, que también es gratis.</p>
+
+        <div class="dl-buttons">
+          <a class="dl-btn" href="https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-macOS-Apple-Silicon.dmg">
+            <img src="assets/brands/apple.svg" alt="" width="22" height="22" />
+            <span><b>Descargar para Mac</b><small>Apple Silicon (M1 a M4), macOS 12 o superior</small></span>
+          </a>
+          <a class="dl-btn is-secondary" href="https://github.com/yairhdz24/bruma/releases/latest/download/Bruma-Windows-x64-setup.exe">
+            <img src="assets/brands/windows.svg" alt="" width="20" height="20" />
+            <span><b>Windows (beta)</b><small>Windows 10 y 11, 64 bits</small></span>
+          </a>
+        </div>
+
+        <div class="terminal">
+          <p>¿Prefieres Terminal? Instala y conserva tus permisos en cada actualización:</p>
+          <div class="term">
+            <code data-cmd>curl -fsSL https://raw.githubusercontent.com/yairhdz24/bruma/main/scripts/install-mac.sh | zsh</code>
+            <button type="button" class="copy" data-copy>Copiar</button>
+          </div>
+        </div>
+
+        <ol class="first-run">
+          <li>Abre el .dmg y arrastra Bruma a Aplicaciones. La primera vez, clic derecho en Bruma y luego Abrir.</li>
+          <li>Da permiso de Micrófono y Accesibilidad cuando la bienvenida te lo pida.</li>
+          <li>Pega tu clave de Groq en Conexiones. Listo: toca fn y habla.</li>
+        </ol>
+
+        <a class="star-cta" href="https://github.com/yairhdz24/bruma" target="_blank" rel="noopener">
+          <span class="star" aria-hidden="true">★</span>
+          <span>¿Te sirve? Una estrella en GitHub ayuda a que más gente la encuentre</span>
+          <span class="star-count" data-stars hidden></span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <div class="footer-brand">
+        <img src="assets/img/icon-256.png" alt="" width="24" height="24" />
+        <span>Bruma</span>
+      </div>
+      <p>Creada por <a href="https://github.com/yairhdz24" target="_blank" rel="noopener">Yair Hernández</a> en Guadalajara. Código abierto con licencia MIT.</p>
+      <nav aria-label="Enlaces">
+        <a href="https://github.com/yairhdz24/bruma" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/yairhdz24/bruma/releases" target="_blank" rel="noopener">Versiones</a>
+        <a href="https://github.com/yairhdz24/bruma/issues/new/choose" target="_blank" rel="noopener">Reportar un problema</a>
+        <a href="https://github.com/yairhdz24/bruma/blob/main/SECURITY.md" target="_blank" rel="noopener">Seguridad</a>
+      </nav>
+      <p class="footer-fine">Los logos de servicios vienen de svgl.app y pertenecen a sus dueños; se usan solo para identificar cada servicio.</p>
+    </div>
+  </footer>
+
+  <script src="assets/vendor/gsap.min.js" defer></script>
+  <script src="assets/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="assets/vendor/lenis.min.js" defer></script>
+  <script src="main.js" defer></script>
+</body>
+</html>
