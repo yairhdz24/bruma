@@ -126,8 +126,12 @@ async fn deliver(app: &AppHandle, shared: &Arc<AppState>, id: &str, settings: &m
             return;
         }
         Err(error) => {
-            shared.update(app, id, |v| { v.phase = "error".into(); v.error = Some(error); v.interim.clear(); });
-            hide_overlay_after(app, id.to_string(), "error", 5200);
+            shared.update(app, id, |v| {
+                // Words that streamed in before the failure (Deepgram) can still be copied.
+                let heard = format!("{} {}", v.transcript, v.interim).trim().to_string();
+                v.phase = "error".into(); v.error = Some(error); v.interim.clear(); v.result = heard;
+            });
+            hide_overlay_after(app, id.to_string(), "error", 6500);
             return;
         }
     };
@@ -157,7 +161,7 @@ async fn deliver(app: &AppHandle, shared: &Arc<AppState>, id: &str, settings: &m
                 { if inserted { if let Some(target) = target.as_ref() { crate::learn::start(app.clone(), id.to_string(), text.clone(), target.pid); } } }
                 let copied = delivery == platform::Delivery::Copied;
                 shared.update(app, id, |v| { v.phase = "inserted".into(); v.result = text.clone(); v.copied = copied; v.error = notice.clone(); });
-                hide_overlay_after(app, id.to_string(), "inserted", if copied || notice.is_some() { 2200 } else { 900 });
+                hide_overlay_after(app, id.to_string(), "inserted", if copied { 9000 } else if notice.is_some() { 2600 } else { 1500 });
             }
             Err(error) => {
                 shared.update(app, id, |v| { v.phase = "ready".into(); v.result = text.clone(); v.copied = true; v.error = Some(error); });
@@ -392,6 +396,12 @@ pub fn hide_overlay_after(app: &AppHandle, session_id: String, phase: &'static s
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
         tokio::time::sleep(Duration::from_millis(delay_ms)).await;
+        // While the pointer rests on the pill (to copy, or to read), keep it; a minute at most.
+        let held = Instant::now();
+        while crate::pill::hovered() && held.elapsed() < Duration::from_secs(60) {
+            tokio::time::sleep(Duration::from_millis(250)).await;
+        }
+        tokio::time::sleep(Duration::from_millis(if held.elapsed() > Duration::from_millis(250) { 600 } else { 0 })).await;
         let target_app = app.clone();
         let _ = app.run_on_main_thread(move || {
             let state = shared(&target_app);

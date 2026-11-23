@@ -5,6 +5,7 @@ fn main() {
     println!("cargo:rerun-if-changed=native/paste.m");
     println!("cargo:rerun-if-changed=native/keys.m");
     println!("cargo:rerun-if-changed=native/focus.m");
+    println!("cargo:rerun-if-changed=native/overlay.m");
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("macos") {
         cc::Build::new()
             .file("native/symbols.m")
@@ -13,6 +14,7 @@ fn main() {
             .file("native/paste.m")
             .file("native/keys.m")
             .file("native/focus.m")
+            .file("native/overlay.m")
             .flag("-fobjc-arc")
             .flag("-fblocks")
             .compile("bruma_system_symbols");

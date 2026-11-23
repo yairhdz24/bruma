@@ -31,7 +31,7 @@
 
 /* Live words above the capsule (streaming engines). */
 .pill-live {
-  max-width: 380px; margin: 0; padding: 9px 14px; border-radius: 16px; text-align: center;
+  max-width: 340px; margin: 0; padding: 9px 14px; border-radius: 16px; text-align: center;
   background: rgba(12, 14, 20, .86); border: .5px solid rgba(255, 255, 255, .14);
   -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
   box-shadow: 0 10px 30px -14px rgba(0, 0, 0, .7);
@@ -44,7 +44,7 @@
 @keyframes pill-rise { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
 
 .capsule {
-  --w: 44px; --h: 9px; --level: 0;
+  --w: 38px; --h: 8px; --level: 0;
   position: relative; isolation: isolate; overflow: hidden; flex: none;
   width: var(--w); height: var(--h); border-radius: 999px;
   background: rgba(14, 16, 20, .74); border: 1px solid rgba(255, 255, 255, .32);
@@ -52,24 +52,26 @@
   -webkit-backdrop-filter: blur(22px) saturate(1.6); backdrop-filter: blur(22px) saturate(1.6);
   transition: width .5s var(--spring), height .5s var(--spring), background-color .25s var(--ease), border-color .25s var(--ease), box-shadow .3s var(--ease), transform .2s var(--ease);
 }
-.pill-stage[data-mode='hover'] .capsule { --w: 104px; --h: 38px; background: rgba(12, 14, 18, .92); border-color: rgba(255, 255, 255, .18); }
+.pill-stage[data-mode='hover'] .capsule { --w: 96px; --h: 34px; background: rgba(12, 14, 18, .92); border-color: rgba(255, 255, 255, .18); }
 /* While you talk: a small capsule tinted with the color of the app you are writing into. */
 .pill-stage[data-mode='listening'] .capsule, .pill-stage[data-mode='paused'] .capsule {
-  --w: 84px; --h: 34px;
+  --w: 72px; --h: 30px;
   background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 30%, rgba(30, 30, 34, .94)), color-mix(in srgb, var(--brand) 16%, rgba(10, 10, 12, .96)));
   border-color: color-mix(in srgb, var(--brand) 60%, rgba(255, 255, 255, .25));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 8px 22px -10px rgba(0, 0, 0, .6), 0 0 calc(4px + var(--level) * 22px) calc(var(--level) * 3px) color-mix(in srgb, var(--brand) 60%, transparent);
 }
 /* Hover reveals cancel and finish. */
-.pill-stage[data-mode='listening'] .capsule:hover, .pill-stage[data-mode='paused'] .capsule:hover { --w: 148px; }
-.pill-stage[data-hold] .capsule:hover { --w: 84px; }
-.pill-stage[data-mode='working'] .capsule { --w: 64px; --h: 30px; background: color-mix(in srgb, var(--brand) 18%, rgba(10, 10, 12, .95)); border-color: color-mix(in srgb, var(--brand) 45%, rgba(255, 255, 255, .16)); }
-.pill-stage[data-mode='done'] .capsule { --w: 92px; --h: 30px; background: rgba(10, 10, 12, .95); border-color: rgba(255, 255, 255, .16); }
-.pill-stage[data-mode='done'][data-copied] .capsule { --w: 200px; }
-.pill-stage[data-mode='review'] .capsule { --w: 340px; --h: 44px; background: rgba(8, 9, 12, .96); border-color: rgba(255, 255, 255, .14); }
-.pill-stage[data-mode='error'] .capsule { --w: 320px; --h: 46px; border-radius: 18px; background: rgba(40, 10, 12, .95); border-color: rgba(255, 120, 120, .35); }
-.pill-stage[data-mode='learn'] .capsule { --w: 404px; --h: 44px; background: rgba(8, 9, 12, .96); border-color: rgba(140, 180, 255, .35); }
-.pill-stage[data-mode='learned'] .capsule { --w: 220px; --h: 36px; background: rgba(8, 9, 12, .95); border-color: rgba(255, 255, 255, .16); }
+.pill-stage[data-mode='listening'] .capsule:hover, .pill-stage[data-mode='paused'] .capsule:hover { --w: 128px; }
+.pill-stage[data-hold] .capsule:hover { --w: 72px; }
+.pill-stage[data-mode='working'] .capsule { --w: 56px; --h: 28px; background: color-mix(in srgb, var(--brand) 18%, rgba(10, 10, 12, .95)); border-color: color-mix(in srgb, var(--brand) 45%, rgba(255, 255, 255, .16)); }
+.pill-stage[data-mode='done'] .capsule { --w: 84px; --h: 28px; background: rgba(10, 10, 12, .95); border-color: rgba(255, 255, 255, .16); }
+.pill-stage[data-mode='done'] .capsule:hover { --w: 112px; }
+/* Couldn't paste: say so and offer the text right there. */
+.pill-stage[data-mode='done'][data-copied] .capsule, .pill-stage[data-mode='done'][data-copied] .capsule:hover { --w: 250px; --h: 36px; background: rgba(36, 24, 6, .96); border-color: rgba(255, 196, 92, .4); }
+.pill-stage[data-mode='review'] .capsule { --w: 310px; --h: 40px; background: rgba(8, 9, 12, .96); border-color: rgba(255, 255, 255, .14); }
+.pill-stage[data-mode='error'] .capsule { --w: 280px; --h: 44px; border-radius: 18px; background: rgba(40, 10, 12, .95); border-color: rgba(255, 120, 120, .35); }
+.pill-stage[data-mode='learn'] .capsule { --w: 340px; --h: 40px; background: rgba(8, 9, 12, .96); border-color: rgba(140, 180, 255, .35); }
+.pill-stage[data-mode='learned'] .capsule { --w: 204px; --h: 32px; background: rgba(8, 9, 12, .95); border-color: rgba(255, 255, 255, .16); }
 .pill-stage[data-mode='idle'] .capsule:hover { transform: scaleY(1.2); }
 
 /* The app's color, breathing with your voice behind the waveform. */
@@ -104,6 +106,16 @@
 .face-done svg, .face-learned svg { color: #7fe3a4; }
 .face-learned { gap: 7px; padding: 0 14px; font-size: 13px; font-weight: 600; }
 .face-done > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.pill-btn.is-copy { height: 20px; background: rgba(255, 255, 255, .12); }
+.capsule:hover .pill-btn.is-copy { width: 20px; }
+.pill-stage[data-copied] .face-done { justify-content: flex-start; gap: 8px; padding: 0 4px 0 12px; }
+.face-done .done-warn { flex: none; color: #ffc45c; }
+.done-text { flex: 1; font-weight: 600; font-size: 12.5px; }
+.pill-stage[data-copied] .pill-btn.is-text { height: 28px; }
+.pill-stage[data-error-copy] .capsule { --w: 320px; }
+.face-error[data-copy] { justify-content: flex-start; gap: 10px; padding: 0 6px 0 14px; }
+.face-error[data-copy] span { flex: 1; text-align: left; }
+.face-error .pill-btn.is-text { height: 30px; }
 .face-review { justify-content: flex-start; padding-left: 16px; }
 .review-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
 .face-error { padding: 0 16px; white-space: normal; }

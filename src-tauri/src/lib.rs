@@ -296,6 +296,30 @@ pub(crate) fn toggle_dictation(app: AppHandle) {
     });
 }
 
+/// Bruma's mark for the menu bar: three rounded bars (short, tall, medium), drawn as a
+/// template image so macOS tints it for light and dark menu bars.
+fn tray_icon() -> tauri::image::Image<'static> {
+    const SIZE: usize = 44;
+    const HALF_WIDTH: f32 = 3.4;
+    let bars = [(11.5_f32, 20.0_f32), (22.0, 34.0), (32.5, 25.0)];
+    let mut rgba = vec![0u8; SIZE * SIZE * 4];
+    for y in 0..SIZE {
+        for x in 0..SIZE {
+            let (px, py) = (x as f32 + 0.5, y as f32 + 0.5);
+            let coverage = bars.iter().map(|&(cx, height)| {
+                // Signed distance to a vertical capsule, turned into anti-aliased coverage.
+                let dx = (px - cx).abs();
+                let dy = ((py - SIZE as f32 / 2.0).abs() - (height / 2.0 - HALF_WIDTH)).max(0.0);
+                let distance = (dx * dx + dy * dy).sqrt() - HALF_WIDTH;
+                (0.5 - distance).clamp(0.0, 1.0)
+            }).fold(0.0_f32, f32::max);
+            let i = (y * SIZE + x) * 4;
+            rgba[i + 3] = (coverage * 255.0).round() as u8;
+        }
+    }
+    tauri::image::Image::new_owned(rgba, SIZE as u32, SIZE as u32)
+}
+
 fn install_tray(app: &tauri::App) -> tauri::Result<()> {
     use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder};
     let dictate = MenuItem::with_id(app, "dictate", "Empezar o terminar dictado", true, None::<&str>)?;
@@ -303,9 +327,7 @@ fn install_tray(app: &tauri::App) -> tauri::Result<()> {
     let cancel = MenuItem::with_id(app, "cancel", "Cancelar dictado", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Salir de Bruma", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&dictate, &show, &cancel, &quit])?;
-    let mut rgba = vec![0u8; 32 * 32 * 4];
-    for y in 0..32 { for x in 0..32 { let d = ((x as f32 - 15.5).powi(2) + (y as f32 - 15.5).powi(2)).sqrt(); if (8.0..13.0).contains(&d) { let i = (y * 32 + x) * 4; rgba[i] = 45; rgba[i + 1] = 45; rgba[i + 2] = 45; rgba[i + 3] = 255; } } }
-    TrayIconBuilder::with_id("bruma-tray").icon(tauri::image::Image::new_owned(rgba, 32, 32)).icon_as_template(true).tooltip("Bruma · Dictado por voz").menu(&menu)
+    TrayIconBuilder::with_id("bruma-tray").icon(tray_icon()).icon_as_template(true).tooltip("Bruma · Dictado por voz").menu(&menu)
         .on_menu_event(|app, event| match event.id.as_ref() {
             "dictate" => toggle_dictation(app.clone()),
             "show" => { let _ = show_main_window(app.clone()); }
@@ -347,6 +369,7 @@ pub fn run() {
             install_tray(app)?;
             platform::start_tracking(app.handle());
             fn_key::start(app.handle());
+            pill::configure(app.handle());
             pill::spawn_poller(app.handle().clone());
             if state.settings.lock().show_pill { let _ = pill::show(app.handle()); }
             Ok(())
@@ -358,6 +381,13 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![get_settings, get_system_symbol, get_permission_status, request_microphone_permission, request_accessibility_permission, open_privacy_settings, get_fn_key_ready, get_shortcut_status, begin_shortcut_test, end_shortcut_test, open_project_updates, open_url, save_settings, get_provider_status, save_api_key, delete_api_key, get_voice_state, start_dictation, stop_dictation, cancel_dictation, polish_text, insert_text, copy_text, get_history, delete_history_item, clear_history, get_active_context, show_main_window, hide_overlay, set_pill_hitbox, get_app_icon, set_practice_field, add_dictionary_term, dismiss_suggestion, list_models])
-        .run(tauri::generate_context!())
-        .expect("Bruma no pudo iniciar la aplicación");
+        .build(tauri::generate_context!())
+        .expect("Bruma no pudo iniciar la aplicación")
+        .run(|app, event| {
+            // Clicking Bruma in the Dock (or opening it again from Finder or Spotlight) brings the window back.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = event { let _ = show_main_window(app.clone()); }
+            #[cfg(not(target_os = "macos"))]
+            let _ = (app, event);
+        });
 }

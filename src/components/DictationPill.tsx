@@ -1,5 +1,5 @@
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties, type RefObject } from 'react';
-import { ArrowElbowDownLeftIcon, ArrowUpRightIcon, BookOpenTextIcon, CheckIcon, MicrophoneIcon, XIcon } from '@phosphor-icons/react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react';
+import { ArrowElbowDownLeftIcon, ArrowUpRightIcon, BookOpenTextIcon, CheckIcon, CopyIcon, MicrophoneIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import { useBrandColor } from '../lib/appColor';
 import type { AppContext, Phase } from '../lib/types';
 import './pill.css';
@@ -24,6 +24,8 @@ export interface DictationPillProps {
   onCancel?: Action;
   onConfirm?: Action;
   onOpen?: Action;
+  /** Copies the dictated text (when it could not be pasted, or to paste it somewhere else). */
+  onCopy?: (text: string) => void | Promise<void>;
   /** A word you just corrected, offered for the dictionary. */
   suggestion?: { heard: string; term: string } | null;
   onLearn?: Action;
@@ -61,13 +63,22 @@ function LiveWords({ text }: { text: string }) {
 }
 
 /** One capsule that morphs between states, like a Dynamic Island: resting line, hover controls, live waveform, result. */
-function DictationPill({ mode, context, levelRef, shortcut, fnKeys = null, hold = false, live = '', error, copied = false, result = '', reducedMotion = false, suggestion = null, brandOverride = null, onStart, onStop, onCancel, onConfirm, onOpen, onLearn, onDismissLearn, onHitbox }: DictationPillProps) {
+function DictationPill({ mode, context, levelRef, shortcut, fnKeys = null, hold = false, live = '', error, copied = false, result = '', reducedMotion = false, suggestion = null, brandOverride = null, onStart, onStop, onCancel, onConfirm, onOpen, onCopy, onLearn, onDismissLearn, onHitbox }: DictationPillProps) {
   const capsule = useRef<HTMLDivElement>(null);
   const tip = useRef<HTMLDivElement>(null);
   const bars = useRef<HTMLSpanElement[]>([]);
   const recording = mode === 'listening' || mode === 'paused';
   const iconBrand = useBrandColor(context.iconDataUrl);
   const brand = brandOverride || iconBrand;
+  // "Copiar" turns into "Copiado" for a moment after a click.
+  const [justCopied, setJustCopied] = useState(false);
+  useEffect(() => { setJustCopied(false); }, [mode, result]);
+  const copy = async () => {
+    if (!result) return;
+    try { await onCopy?.(result); setJustCopied(true); } catch { setJustCopied(false); }
+  };
+  const canCopy = !!result && !!onCopy;
+  const copyLabel = justCopied ? 'Copiado' : 'Copiar';
 
   // Waveform driven by the real microphone level, sampled ~22 times per second.
   useEffect(() => {
@@ -126,7 +137,7 @@ function DictationPill({ mode, context, levelRef, shortcut, fnKeys = null, hold 
 
   const message = mode === 'error' ? (error || 'No se pudo completar el dictado') : '';
   const style = { '--brand': brand } as CSSProperties;
-  return <div className="pill-stage" style={style} data-mode={mode} data-copied={copied || undefined} data-hold={hold || undefined} data-reduced-motion={reducedMotion || undefined}>
+  return <div className="pill-stage" style={style} data-mode={mode} data-copied={copied || undefined} data-error-copy={(mode === 'error' && canCopy) || undefined} data-hold={hold || undefined} data-reduced-motion={reducedMotion || undefined}>
     <div className="pill-above">
       <div ref={tip} className="pill-tip" aria-hidden={mode !== 'hover'}>
         {fnKeys ? <>Toca {fnKeys.map(k => <kbd key={k}>{k}</kbd>)} o mantenlo para dictar</> : <>Dictar {shortcut.map((key, i) => <kbd key={i}>{key}</kbd>)}</>}
@@ -150,15 +161,28 @@ function DictationPill({ mode, context, levelRef, shortcut, fnKeys = null, hold 
 
       <div className="face face-working" aria-hidden={mode !== 'working'}><span className="dots" aria-hidden="true"><i /><i /><i /></span></div>
 
-      <div className="face face-done" aria-hidden={mode !== 'done'}><CheckIcon size={13} weight="bold" aria-hidden="true" /><span>{copied ? 'Copiado · ⌘V para pegar' : 'Listo'}</span></div>
+      <div className="face face-done" aria-hidden={mode !== 'done'}>
+        {copied ? <>
+          <WarningCircleIcon className="done-warn" size={15} weight="fill" aria-hidden="true" />
+          <span className="done-text">No se pegó tu dictado</span>
+          {canCopy && <button type="button" className="pill-btn is-stop is-text" tabIndex={mode === 'done' ? 0 : -1} onClick={() => void copy()}>{copyLabel}</button>}
+        </> : <>
+          <CheckIcon size={13} weight="bold" aria-hidden="true" /><span>{justCopied ? 'Copiado' : 'Listo'}</span>
+          {canCopy && <button type="button" className="pill-btn is-side is-copy" tabIndex={mode === 'done' ? 0 : -1} aria-label="Copiar el dictado" title="Copiar" onClick={() => void copy()}><CopyIcon size={12} weight="bold" aria-hidden="true" /></button>}
+        </>}
+      </div>
 
       <div className="face face-review" aria-hidden={mode !== 'review'}>
         <span className="review-text">{result}</span>
         <button type="button" className="pill-btn" tabIndex={mode === 'review' ? 0 : -1} aria-label="Descartar" onClick={() => void onCancel?.()}><XIcon size={12} weight="bold" aria-hidden="true" /></button>
+        {canCopy && <button type="button" className="pill-btn" tabIndex={mode === 'review' ? 0 : -1} aria-label={copyLabel} title={copyLabel} onClick={() => void copy()}>{justCopied ? <CheckIcon size={12} weight="bold" aria-hidden="true" /> : <CopyIcon size={12} weight="bold" aria-hidden="true" />}</button>}
         <button type="button" className="pill-btn is-stop" tabIndex={mode === 'review' ? 0 : -1} aria-label={`Pegar en ${context.name}`} onClick={() => void onConfirm?.()}><ArrowElbowDownLeftIcon size={13} weight="bold" aria-hidden="true" /></button>
       </div>
 
-      <div className="face face-error" aria-hidden={mode !== 'error'}><span>{message}</span></div>
+      <div className="face face-error" data-copy={canCopy || undefined} aria-hidden={mode !== 'error'}>
+        <span>{message}</span>
+        {canCopy && <button type="button" className="pill-btn is-stop is-text" tabIndex={mode === 'error' ? 0 : -1} onClick={() => void copy()}>{copyLabel}</button>}
+      </div>
 
       <div className="face face-learn" aria-hidden={mode !== 'learn'}>
         <BookOpenTextIcon size={15} aria-hidden="true" />
@@ -169,7 +193,7 @@ function DictationPill({ mode, context, levelRef, shortcut, fnKeys = null, hold 
 
       <div className="face face-learned" aria-hidden={mode !== 'learned'}><CheckIcon size={13} weight="bold" aria-hidden="true" /><span>Agregada al diccionario</span></div>
     </div>
-    <span className="sr-only" role="status" aria-live="polite">{recording ? `Escuchando en ${context.name}` : mode === 'working' ? 'Escribiendo' : mode === 'done' ? (copied ? 'Copiado' : 'Texto pegado') : mode === 'learn' ? `¿Agregar ${suggestion?.term} al diccionario?` : message}</span>
+    <span className="sr-only" role="status" aria-live="polite">{recording ? `Escuchando en ${context.name}` : mode === 'working' ? 'Escribiendo' : mode === 'done' ? (copied ? 'No se pegó tu dictado. Usa Copiar.' : 'Texto pegado') : mode === 'learn' ? `¿Agregar ${suggestion?.term} al diccionario?` : message}</span>
   </div>;
 }
 export default memo(DictationPill);

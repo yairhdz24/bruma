@@ -2,14 +2,34 @@
 //! It is transparent and lets clicks through, except over the pill itself, which the
 //! web view reports as a hitbox. A light poller (20 Hz) toggles click-through and hover.
 use crate::{dictation, model::VoiceState};
-use std::{sync::Mutex, time::{Duration, Instant}};
+use std::{sync::{atomic::{AtomicBool, Ordering}, Mutex}, time::{Duration, Instant}};
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, WebviewWindow};
 
 /// Logical size of the overlay window. The pill grows inside it, so resizing never janks.
-pub const WIDTH: f64 = 420.0;
+pub const WIDTH: f64 = 380.0;
 pub const HEIGHT: f64 = 168.0;
 /// Space between the pill window and the Dock (or the bottom of the screen).
-const GAP: f64 = 2.0;
+const GAP: f64 = 10.0;
+
+#[cfg(target_os = "macos")]
+extern "C" {
+    fn bruma_overlay_configure(ns_window: *mut std::ffi::c_void);
+    fn bruma_dock_clearance() -> f64;
+}
+
+/// True while the pointer is over the pill: results stay on screen until you leave.
+static HOVERED: AtomicBool = AtomicBool::new(false);
+pub fn hovered() -> bool { HOVERED.load(Ordering::Relaxed) }
+
+/// Lifts the pill window above the Dock and onto every Space (macOS).
+pub fn configure(app: &AppHandle) {
+    #[cfg(target_os = "macos")]
+    if let Some(window) = window(app) {
+        if let Ok(ns_window) = window.ns_window() { unsafe { bruma_overlay_configure(ns_window) } }
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = app;
+}
 
 struct State { hitbox: Option<(f64, f64, f64, f64)> }
 static STATE: Mutex<State> = Mutex::new(State { hitbox: None });
@@ -34,7 +54,17 @@ pub fn place(app: &AppHandle) {
     let area = monitor.work_area();
     let scale = monitor.scale_factor();
     let x = area.position.x as f64 + (area.size.width as f64 - WIDTH * scale) / 2.0;
-    let y = area.position.y as f64 + area.size.height as f64 - (HEIGHT + GAP) * scale;
+    #[allow(unused_mut)]
+    let mut bottom = area.position.y as f64 + area.size.height as f64;
+    // Newer macOS versions can report the whole screen as usable, and a Dock that hides itself
+    // slides over the pill: measure the Dock and stay above it.
+    #[cfg(target_os = "macos")]
+    {
+        let screen_bottom = monitor.position().y as f64 + monitor.size().height as f64;
+        let clearance = unsafe { bruma_dock_clearance() };
+        if clearance.is_finite() && clearance > 0.0 { bottom = bottom.min(screen_bottom - clearance * scale); }
+    }
+    let y = bottom - (HEIGHT + GAP) * scale;
     let _ = window.set_position(PhysicalPosition::new(x.round() as i32, y.round() as i32));
 }
 
@@ -84,7 +114,7 @@ pub fn spawn_poller(app: AppHandle) {
         loop {
             tick.tick().await;
             let Some(window) = window(&app) else { continue };
-            if !window.is_visible().unwrap_or(false) { inside_before = None; continue; }
+            if !window.is_visible().unwrap_or(false) { inside_before = None; HOVERED.store(false, Ordering::Relaxed); continue; }
             let Ok(cursor) = window.cursor_position() else { continue };
             // Follow the pointer to another display while nothing is happening.
             if checked_screen.elapsed() >= Duration::from_millis(500) {
@@ -102,6 +132,7 @@ pub fn spawn_poller(app: AppHandle) {
             });
             if inside_before != Some(inside) {
                 inside_before = Some(inside);
+                HOVERED.store(inside, Ordering::Relaxed);
                 let _ = window.set_ignore_cursor_events(!inside);
                 let _ = window.emit("overlay:hover", inside);
             }

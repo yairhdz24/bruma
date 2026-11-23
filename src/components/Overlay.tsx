@@ -36,7 +36,9 @@ export default function Overlay() {
   const mac = /Mac/i.test(navigator.userAgent);
   // Browser preview only: ?view=overlay&state=listening renders a state for design review.
   const query = isNative ? null : new URLSearchParams(window.location.search);
-  const forced = query?.get('state') as ReturnType<typeof pillMode> | null ?? null;
+  const forcedState = query?.get('state') ?? null;
+  // ?state=copied previews the "could not paste" result.
+  const forced = (forcedState === 'copied' ? 'done' : forcedState) as ReturnType<typeof pillMode> | null;
   // Preview only (README captures): ?brand=%2325D366 tints the pill, ?live=1 feeds a synthetic voice.
   const previewBrand = query?.get('brand') && /^#[0-9a-f]{6}$/i.test(query.get('brand')!) ? query.get('brand') : null;
   const previewVoice = query?.get('live') === '1';
@@ -113,10 +115,11 @@ export default function Overlay() {
   return <main className="overlay-stage" aria-label="Bruma">
     <DictationPill mode={mode} context={forced ? { ...voice.context, name: 'Slack' } : voice.context} levelRef={levelRef} shortcut={keys}
       fnKeys={mac && settings.fnKey ? (settings.fnCombo === 'fn+space' ? ['fn', 'Espacio'] : ['fn']) : null} hold={voice.hold} live={forced === 'listening' ? 'Oye, mañana a las diez revisamos el diseño de Bruma' : voice.live ? `${voice.transcript} ${voice.interim}`.trim() : ''}
-      error={forced === 'error' ? 'Groq rechazó la clave. Revísala en Conexiones.' : voice.error} copied={voice.copied} result={forced === 'review' ? 'Perfecto, mañana a las 10:30 revisamos el diseño de Bruma.' : voice.result} reducedMotion={settings.reducedMotion}
+      error={forced === 'error' ? 'Groq no respondió a tiempo. Revisa tu conexión.' : voice.error} copied={forcedState === 'copied' || voice.copied} result={forced === 'review' || forced === 'done' || forced === 'error' ? 'Perfecto, mañana a las 10:30 revisamos el diseño de Bruma.' : voice.result} reducedMotion={settings.reducedMotion}
       onStart={() => { setHovered(false); return start(); }} onStop={stop}
       onCancel={async () => { await cancel(); }} onConfirm={() => insert(voice.result, true)}
       brandOverride={previewBrand} suggestion={forced === 'learn' ? { heard: 'Deep Grip', term: 'Deepgram' } : suggestion} onLearn={learn} onDismissLearn={dismiss}
-      onOpen={() => isNative ? command('show_main_window').catch(() => {}) : undefined} onHitbox={onHitbox} />
+      onOpen={() => isNative ? command('show_main_window').catch(() => {}) : undefined} onHitbox={onHitbox}
+      onCopy={async text => { if (isNative) await command('copy_text', { text }); else await navigator.clipboard.writeText(text); }} />
   </main>;
 }
