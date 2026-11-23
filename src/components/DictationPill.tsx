@@ -165,10 +165,10 @@ function DictationPill({ mode, context, levelRef, shortcut, fnKeys = null, hold 
         {copied ? <>
           <WarningCircleIcon className="done-warn" size={15} weight="fill" aria-hidden="true" />
           <span className="done-text">No se pegó tu dictado</span>
-          {canCopy && <button type="button" className="pill-btn is-stop is-text" tabIndex={mode === 'done' ? 0 : -1} onClick={() => void copy()}>{copyLabel}</button>}
+          {canCopy && <button type="button" className="pill-btn is-stop is-text" data-copied-now={justCopied || undefined} tabIndex={mode === 'done' ? 0 : -1} onClick={() => void copy()}>{copyLabel}</button>}
         </> : <>
-          <CheckIcon size={13} weight="bold" aria-hidden="true" /><span>{justCopied ? 'Copiado' : 'Listo'}</span>
-          {canCopy && <button type="button" className="pill-btn is-side is-copy" tabIndex={mode === 'done' ? 0 : -1} aria-label="Copiar el dictado" title="Copiar" onClick={() => void copy()}><CopyIcon size={12} weight="bold" aria-hidden="true" /></button>}
+          <CheckIcon size={13} weight="bold" aria-hidden="true" /><span>Listo</span>
+          {canCopy && <button type="button" className="pill-btn is-side is-copy" data-copied-now={justCopied || undefined} tabIndex={mode === 'done' ? 0 : -1} aria-label={justCopied ? 'Copiado' : 'Copiar el dictado'} title={copyLabel} onClick={() => void copy()}>{justCopied ? <CheckIcon size={11} weight="bold" aria-hidden="true" /> : <CopyIcon size={12} weight="bold" aria-hidden="true" />}</button>}
         </>}
       </div>
 
@@ -181,7 +181,7 @@ function DictationPill({ mode, context, levelRef, shortcut, fnKeys = null, hold 
 
       <div className="face face-error" data-copy={canCopy || undefined} aria-hidden={mode !== 'error'}>
         <span>{message}</span>
-        {canCopy && <button type="button" className="pill-btn is-stop is-text" tabIndex={mode === 'error' ? 0 : -1} onClick={() => void copy()}>{copyLabel}</button>}
+        {canCopy && <button type="button" className="pill-btn is-stop is-text" data-copied-now={justCopied || undefined} tabIndex={mode === 'error' ? 0 : -1} onClick={() => void copy()}>{copyLabel}</button>}
       </div>
 
       <div className="face face-learn" aria-hidden={mode !== 'learn'}>
@@ -193,7 +193,7 @@ function DictationPill({ mode, context, levelRef, shortcut, fnKeys = null, hold 
 
       <div className="face face-learned" aria-hidden={mode !== 'learned'}><CheckIcon size={13} weight="bold" aria-hidden="true" /><span>Agregada al diccionario</span></div>
     </div>
-    <span className="sr-only" role="status" aria-live="polite">{recording ? `Escuchando en ${context.name}` : mode === 'working' ? 'Escribiendo' : mode === 'done' ? (copied ? 'No se pegó tu dictado. Usa Copiar.' : 'Texto pegado') : mode === 'learn' ? `¿Agregar ${suggestion?.term} al diccionario?` : message}</span>
+    <span className="sr-only" role="status" aria-live="polite">{recording ? `Escuchando en ${context.name}` : mode === 'working' ? 'Escribiendo' : justCopied ? 'Copiado' : mode === 'done' ? (copied ? 'No se pegó tu dictado. Ya está en tu portapapeles.' : 'Texto pegado') : mode === 'learn' ? `¿Agregar ${suggestion?.term} al diccionario?` : message}</span>
   </div>;
 }
 export default memo(DictationPill);

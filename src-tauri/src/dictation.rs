@@ -39,7 +39,7 @@ pub async fn begin_from_key(app: AppHandle, hold: bool) {
     if let Err(error) = start_with(app.clone(), hold).await {
         let shared = shared(&app);
         let id = shared.voice.lock().session_id.clone();
-        shared.update(&app, &id, |v| { v.phase = "error".into(); v.error = Some(error); });
+        shared.update(&app, &id, |v| { v.phase = "error".into(); v.error = Some(error); v.result.clear(); v.copied = false; });
         let _ = crate::pill::show(&app);
         hide_overlay_after(&app, id, "error", 4200);
     }
@@ -131,7 +131,7 @@ async fn deliver(app: &AppHandle, shared: &Arc<AppState>, id: &str, settings: &m
                 let heard = format!("{} {}", v.transcript, v.interim).trim().to_string();
                 v.phase = "error".into(); v.error = Some(error); v.interim.clear(); v.result = heard;
             });
-            hide_overlay_after(app, id.to_string(), "error", 6500);
+            hide_result_after(app, id.to_string(), "error", 6500);
             return;
         }
     };
@@ -161,7 +161,7 @@ async fn deliver(app: &AppHandle, shared: &Arc<AppState>, id: &str, settings: &m
                 { if inserted { if let Some(target) = target.as_ref() { crate::learn::start(app.clone(), id.to_string(), text.clone(), target.pid); } } }
                 let copied = delivery == platform::Delivery::Copied;
                 shared.update(app, id, |v| { v.phase = "inserted".into(); v.result = text.clone(); v.copied = copied; v.error = notice.clone(); });
-                hide_overlay_after(app, id.to_string(), "inserted", if copied { 9000 } else if notice.is_some() { 2600 } else { 1500 });
+                hide_result_after(app, id.to_string(), "inserted", if copied { 9000 } else if notice.is_some() { 2600 } else { 1500 });
             }
             Err(error) => {
                 shared.update(app, id, |v| { v.phase = "ready".into(); v.result = text.clone(); v.copied = true; v.error = Some(error); });
@@ -393,15 +393,31 @@ pub fn stop(app: &AppHandle) -> Result<(), String> {
 }
 
 pub fn hide_overlay_after(app: &AppHandle, session_id: String, phase: &'static str, delay_ms: u64) {
+    schedule_hide(app, session_id, phase, delay_ms, false);
+}
+
+/// Like `hide_overlay_after`, for results you may want to act on (copy, read an error): the
+/// pill stays while the pointer rests on it, a minute at most.
+pub fn hide_result_after(app: &AppHandle, session_id: String, phase: &'static str, delay_ms: u64) {
+    schedule_hide(app, session_id, phase, delay_ms, true);
+}
+
+fn schedule_hide(app: &AppHandle, session_id: String, phase: &'static str, delay_ms: u64, hold_while_hovered: bool) {
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
         tokio::time::sleep(Duration::from_millis(delay_ms)).await;
-        // While the pointer rests on the pill (to copy, or to read), keep it; a minute at most.
-        let held = Instant::now();
-        while crate::pill::hovered() && held.elapsed() < Duration::from_secs(60) {
-            tokio::time::sleep(Duration::from_millis(250)).await;
+        if hold_while_hovered {
+            let held = Instant::now();
+            // Leaving the pill gives a short grace period; coming back resets it.
+            loop {
+                while crate::pill::hovered() && held.elapsed() < Duration::from_secs(60) {
+                    tokio::time::sleep(Duration::from_millis(200)).await;
+                }
+                if held.elapsed() < Duration::from_millis(200) || held.elapsed() >= Duration::from_secs(60) { break; }
+                tokio::time::sleep(Duration::from_millis(700)).await;
+                if !crate::pill::hovered() { break; }
+            }
         }
-        tokio::time::sleep(Duration::from_millis(if held.elapsed() > Duration::from_millis(250) { 600 } else { 0 })).await;
         let target_app = app.clone();
         let _ = app.run_on_main_thread(move || {
             let state = shared(&target_app);

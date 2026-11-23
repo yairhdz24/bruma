@@ -79,7 +79,7 @@ export function useVoice() {
 
   const start = useCallback(async () => {
     if (!isNative) { startDemo(); return; }
-    try { await command('start_dictation'); } catch (error) { setVoice(v => ({ ...v, phase: 'error', error: errorMessage(error) })); }
+    try { await command('start_dictation'); } catch (error) { setVoice(v => ({ ...v, phase: 'error', error: errorMessage(error), result: '', copied: false })); }
   }, [startDemo]);
   const stop = useCallback(async () => {
     if (demoRef.current) { finishDemo(); return; }

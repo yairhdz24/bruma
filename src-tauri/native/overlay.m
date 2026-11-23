@@ -16,7 +16,15 @@ void bruma_overlay_configure(void *ns_window) {
 
 // Points taken by the Dock at the bottom of the screen under the pointer, including a Dock that
 // hides itself (it slides over whatever is there), so the pill can always sit just above it.
+static double dock_clearance_on_main(void);
 double bruma_dock_clearance(void) {
+    if (NSThread.isMainThread) return dock_clearance_on_main();
+    __block double result = 0;
+    dispatch_sync(dispatch_get_main_queue(), ^{ result = dock_clearance_on_main(); });
+    return result;
+}
+
+static double dock_clearance_on_main(void) {
     @autoreleasepool {
         NSPoint mouse = NSEvent.mouseLocation;
         NSScreen *screen = NSScreen.mainScreen;

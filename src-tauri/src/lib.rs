@@ -169,13 +169,24 @@ async fn insert_text(app: AppHandle, text: String, defer_overlay_hide: Option<bo
     let id = shared.voice.lock().session_id.clone();
     let copied = delivery == platform::Delivery::Copied;
     shared.update(&app, &id, |v| { v.phase = "inserted".into(); v.result = text.clone(); v.error = None; v.copied = copied; });
-    if defer_overlay_hide.unwrap_or(false) { dictation::hide_overlay_after(&app, id, "inserted", if copied { 1600 } else { 600 }); }
+    if defer_overlay_hide.unwrap_or(false) {
+        if copied { dictation::hide_result_after(&app, id, "inserted", 9000); } else { dictation::hide_overlay_after(&app, id, "inserted", 600); }
+    }
     Ok(if copied { "copied" } else { "pasted" }.into())
 }
 
 #[tauri::command]
 async fn copy_text(text: String) -> Result<(), String> {
     tokio::task::spawn_blocking(move || platform::copy(&text)).await.map_err(|_| "No se pudo copiar el texto.".to_string())?
+}
+
+/// "Copiar" on the pill: copies the dictation and returns you to the app you were writing in.
+#[tauri::command]
+async fn copy_result(app: AppHandle, text: String) -> Result<(), String> {
+    tokio::task::spawn_blocking(move || platform::copy(&text)).await.map_err(|_| "No se pudo copiar el texto.".to_string())??;
+    let target = dictation::shared(&app).target.lock().clone();
+    platform::return_focus(target.as_ref());
+    Ok(())
 }
 
 #[tauri::command]
@@ -289,7 +300,7 @@ pub(crate) fn toggle_dictation(app: AppHandle) {
         } else if state.phase != "processing" {
             if let Err(error) = dictation::start(app.clone()).await {
                 let id = shared.voice.lock().session_id.clone();
-                shared.update(&app, &id, |v| { v.phase = "error".into(); v.error = Some(error); });
+                shared.update(&app, &id, |v| { v.phase = "error".into(); v.error = Some(error); v.result.clear(); v.copied = false; });
                 let _ = show_main_window(app);
             }
         }
@@ -298,10 +309,16 @@ pub(crate) fn toggle_dictation(app: AppHandle) {
 
 /// Bruma's mark for the menu bar: three rounded bars (short, tall, medium), drawn as a
 /// template image so macOS tints it for light and dark menu bars.
-fn tray_icon() -> tauri::image::Image<'static> {
-    const SIZE: usize = 44;
-    const HALF_WIDTH: f32 = 3.4;
-    let bars = [(11.5_f32, 20.0_f32), (22.0, 34.0), (32.5, 25.0)];
+fn tray_icon(app: &tauri::App) -> tauri::image::Image<'static> {
+    // Windows has no template images: its taskbar shows the full-color app icon instead.
+    #[cfg(not(target_os = "macos"))]
+    if let Some(icon) = app.default_window_icon() { return icon.clone().to_owned(); }
+    #[cfg(target_os = "macos")]
+    let _ = app;
+    // 18 pt in the menu bar = 36 px on Retina: drawn at that size so it stays crisp.
+    const SIZE: usize = 36;
+    const HALF_WIDTH: f32 = 2.8;
+    let bars = [(9.5_f32, 16.0_f32), (18.0, 28.0), (26.5, 20.0)];
     let mut rgba = vec![0u8; SIZE * SIZE * 4];
     for y in 0..SIZE {
         for x in 0..SIZE {
@@ -327,7 +344,7 @@ fn install_tray(app: &tauri::App) -> tauri::Result<()> {
     let cancel = MenuItem::with_id(app, "cancel", "Cancelar dictado", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Salir de Bruma", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&dictate, &show, &cancel, &quit])?;
-    TrayIconBuilder::with_id("bruma-tray").icon(tray_icon()).icon_as_template(true).tooltip("Bruma · Dictado por voz").menu(&menu)
+    TrayIconBuilder::with_id("bruma-tray").icon(tray_icon(app)).icon_as_template(true).tooltip("Bruma · Dictado por voz").menu(&menu)
         .on_menu_event(|app, event| match event.id.as_ref() {
             "dictate" => toggle_dictation(app.clone()),
             "show" => { let _ = show_main_window(app.clone()); }
@@ -380,7 +397,7 @@ pub fn run() {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event { let _ = shortcuts::end(window.app_handle()); api.prevent_close(); let _ = window.hide(); }
             }
         })
-        .invoke_handler(tauri::generate_handler![get_settings, get_system_symbol, get_permission_status, request_microphone_permission, request_accessibility_permission, open_privacy_settings, get_fn_key_ready, get_shortcut_status, begin_shortcut_test, end_shortcut_test, open_project_updates, open_url, save_settings, get_provider_status, save_api_key, delete_api_key, get_voice_state, start_dictation, stop_dictation, cancel_dictation, polish_text, insert_text, copy_text, get_history, delete_history_item, clear_history, get_active_context, show_main_window, hide_overlay, set_pill_hitbox, get_app_icon, set_practice_field, add_dictionary_term, dismiss_suggestion, list_models])
+        .invoke_handler(tauri::generate_handler![get_settings, get_system_symbol, get_permission_status, request_microphone_permission, request_accessibility_permission, open_privacy_settings, get_fn_key_ready, get_shortcut_status, begin_shortcut_test, end_shortcut_test, open_project_updates, open_url, save_settings, get_provider_status, save_api_key, delete_api_key, get_voice_state, start_dictation, stop_dictation, cancel_dictation, polish_text, insert_text, copy_text, copy_result, get_history, delete_history_item, clear_history, get_active_context, show_main_window, hide_overlay, set_pill_hitbox, get_app_icon, set_practice_field, add_dictionary_term, dismiss_suggestion, list_models])
         .build(tauri::generate_context!())
         .expect("Bruma no pudo iniciar la aplicación")
         .run(|app, event| {

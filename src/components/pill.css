@@ -67,7 +67,7 @@
 .pill-stage[data-mode='done'] .capsule { --w: 84px; --h: 28px; background: rgba(10, 10, 12, .95); border-color: rgba(255, 255, 255, .16); }
 .pill-stage[data-mode='done'] .capsule:hover { --w: 112px; }
 /* Couldn't paste: say so and offer the text right there. */
-.pill-stage[data-mode='done'][data-copied] .capsule, .pill-stage[data-mode='done'][data-copied] .capsule:hover { --w: 250px; --h: 36px; background: rgba(36, 24, 6, .96); border-color: rgba(255, 196, 92, .4); }
+.pill-stage[data-mode='done'][data-copied] .capsule, .pill-stage[data-mode='done'][data-copied] .capsule:hover { --w: 262px; --h: 36px; background: rgba(36, 24, 6, .96); border-color: rgba(255, 196, 92, .4); }
 .pill-stage[data-mode='review'] .capsule { --w: 310px; --h: 40px; background: rgba(8, 9, 12, .96); border-color: rgba(255, 255, 255, .14); }
 .pill-stage[data-mode='error'] .capsule { --w: 280px; --h: 44px; border-radius: 18px; background: rgba(40, 10, 12, .95); border-color: rgba(255, 120, 120, .35); }
 .pill-stage[data-mode='learn'] .capsule { --w: 340px; --h: 40px; background: rgba(8, 9, 12, .96); border-color: rgba(140, 180, 255, .35); }
@@ -100,7 +100,7 @@
 .face-record { justify-content: center; gap: 4px; padding: 0 4px; }
 .pill-btn.is-side { width: 0; height: 24px; opacity: 0; overflow: hidden; transition: width .35s var(--spring), opacity .2s var(--ease); }
 .capsule:hover .pill-btn.is-side, .pill-btn.is-side:focus-visible { width: 24px; opacity: 1; }
-.pill-stage[data-hold] .pill-btn.is-side { width: 0 !important; opacity: 0 !important; }
+.pill-stage[data-hold]:is([data-mode='listening'], [data-mode='paused']) .pill-btn.is-side { width: 0 !important; opacity: 0 !important; }
 .face-working { gap: 10px; }
 .face-done { gap: 6px; padding: 0 12px; font-size: 12.5px; font-weight: 600; }
 .face-done svg, .face-learned svg { color: #7fe3a4; }
@@ -152,3 +152,16 @@
 @media (prefers-reduced-motion: reduce) { .capsule, .face, .pill-tip { transition-duration: .01s !important; } .dots i, .pill-live span { animation: none; } }
 
 .overlay-stage { width: 100vw; height: 100vh; background: transparent; overflow: hidden; }
+
+/* Micro-interactions: a press you can feel, a confirmation that pops. */
+.pill-btn:active { transform: scale(.9); }
+.pill-btn[data-copied-now] { animation: copied-pop .42s var(--spring); }
+.pill-btn.is-text[data-copied-now] { background: #7fe3a4; color: #06210f; }
+.pill-btn.is-copy[data-copied-now] { color: #7fe3a4; width: 20px; opacity: 1; }
+@keyframes copied-pop { 0% { transform: scale(.86); } 55% { transform: scale(1.08); } 100% { transform: none; } }
+.pill-stage[data-mode='done'][data-copied] .done-warn { animation: warn-in .5s var(--spring) .1s both; }
+@keyframes warn-in { from { opacity: 0; transform: scale(.4) rotate(-20deg); } to { opacity: 1; transform: none; } }
+.pill-stage[data-mode='done']:not([data-copied]) .face-done > svg:first-child { animation: check-in .45s var(--spring) .08s both; }
+@keyframes check-in { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .pill-btn[data-copied-now], .done-warn, .face-done > svg { animation: none !important; } }
+.pill-stage[data-reduced-motion] .pill-btn[data-copied-now], .pill-stage[data-reduced-motion] .done-warn, .pill-stage[data-reduced-motion] .face-done > svg { animation: none !important; }

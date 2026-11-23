@@ -163,6 +163,17 @@ pub async fn attach_icon(app: &tauri::AppHandle, target: &mut Target) {
     let _ = (app, target);
 }
 
+/// After a click on the pill (which activates Bruma), hand focus back to the app you were
+/// writing in, so ⌘V lands there and not in Bruma.
+pub fn return_focus(target: Option<&Target>) {
+    #[cfg(target_os = "macos")]
+    if let Some(pid) = target.map(|t| t.pid).filter(|pid| *pid != 0 && *pid != std::process::id()) {
+        unsafe { bruma_activate_app(pid as i32); }
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = target;
+}
+
 pub fn copy(text: &str) -> Result<(), String> {
     validate_text(text)?;
     let _guard = CLIPBOARD_LOCK.lock().map_err(|_| "Portapapeles ocupado.")?;

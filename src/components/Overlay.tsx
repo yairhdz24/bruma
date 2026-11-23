@@ -120,6 +120,6 @@ export default function Overlay() {
       onCancel={async () => { await cancel(); }} onConfirm={() => insert(voice.result, true)}
       brandOverride={previewBrand} suggestion={forced === 'learn' ? { heard: 'Deep Grip', term: 'Deepgram' } : suggestion} onLearn={learn} onDismissLearn={dismiss}
       onOpen={() => isNative ? command('show_main_window').catch(() => {}) : undefined} onHitbox={onHitbox}
-      onCopy={async text => { if (isNative) await command('copy_text', { text }); else await navigator.clipboard.writeText(text); }} />
+      onCopy={async text => { if (isNative) await command('copy_result', { text }); else await navigator.clipboard.writeText(text); }} />
   </main>;
 }
